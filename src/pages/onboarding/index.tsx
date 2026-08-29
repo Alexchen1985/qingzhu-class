@@ -228,7 +228,7 @@ const OnboardingPage = () => {
         <View className="w-16 h-16 rounded-full bg-[#E0F5ED] flex items-center justify-center mb-3">
           <GraduationCap size={32} color="#5EC4A0" />
         </View>
-        <Text className="block text-xl font-bold text-gray-800">欢迎使用家委助手</Text>
+        <Text className="block text-xl font-bold text-gray-800">欢迎使用班级信息公开平台</Text>
         <Text className="block text-sm text-gray-500 mt-1">创建或加入班级开始使用</Text>
       </View>
 

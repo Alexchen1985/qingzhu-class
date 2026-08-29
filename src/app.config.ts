@@ -14,7 +14,7 @@ export default typeof defineAppConfig === 'function'
       window: {
         backgroundTextStyle: 'light',
         navigationBarBackgroundColor: '#fff',
-        navigationBarTitleText: '家委助手',
+        navigationBarTitleText: '班级信息公开平台',
         navigationBarTextStyle: 'black'
       },
       tabBar: {
@@ -70,7 +70,7 @@ export default typeof defineAppConfig === 'function'
       window: {
         backgroundTextStyle: 'light',
         navigationBarBackgroundColor: '#fff',
-        navigationBarTitleText: '家委助手',
+        navigationBarTitleText: '班级信息公开平台',
         navigationBarTextStyle: 'black'
       },
       tabBar: {
