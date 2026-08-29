@@ -3,6 +3,7 @@ export interface Notice {
   id: string
   title: string
   content: string
+  type?: 'official' | 'teacher' | 'committee'
   needConfirm: boolean
   isTop: boolean
   images: string[]
@@ -14,6 +15,7 @@ export interface Notice {
 export interface Activity {
   id: string
   name: string
+  title?: string
   time: string
   location: string
   maxCount: number
@@ -62,5 +64,6 @@ export interface UserProfile {
   studentName: string
   parentName: string
   contact: string
+  className?: string
   role: 'committee' | 'parent'
 }

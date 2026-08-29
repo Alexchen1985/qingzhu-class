@@ -1,6 +1,7 @@
 export default typeof defineAppConfig === 'function'
   ? defineAppConfig({
       pages: [
+        'pages/splash/index',
         'pages/index/index',
         'pages/notice/index',
         'pages/activity/index',
@@ -18,7 +19,7 @@ export default typeof defineAppConfig === 'function'
       },
       tabBar: {
         color: '#9CA3AF',
-        selectedColor: '#F97316',
+        selectedColor: '#5EC4A0',
         backgroundColor: '#ffffff',
         borderStyle: 'black',
         list: [
@@ -57,6 +58,7 @@ export default typeof defineAppConfig === 'function'
     })
   : {
       pages: [
+        'pages/splash/index',
         'pages/index/index',
         'pages/notice/index',
         'pages/activity/index',
@@ -73,7 +75,7 @@ export default typeof defineAppConfig === 'function'
       },
       tabBar: {
         color: '#9CA3AF',
-        selectedColor: '#F97316',
+        selectedColor: '#5EC4A0',
         backgroundColor: '#ffffff',
         borderStyle: 'black',
         list: [

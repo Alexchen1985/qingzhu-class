@@ -10,10 +10,11 @@
 
 | 用途 | Tailwind 类名 | 色值 | 说明 |
 |------|-------------|------|------|
-| 主色 | `bg-orange-500` / `text-orange-500` | #F97316 | 按钮、TabBar选中、关键操作 |
-| 主色浅底 | `bg-orange-50` | #FFF7ED | 卡片高亮背景、标签底色 |
+| 主色 | `bg-[#5EC4A0]` / `text-[#5EC4A0]` | #5EC4A0 | 按钮、TabBar选中、关键操作 |
+| 主色深 | `bg-[#4AA886]` / `text-[#4AA886]` | #4AA886 | 主色 hover/按压态 |
+| 主色浅底 | `bg-[#E8F5F0]` | #E8F5F0 | 卡片高亮背景、标签底色 |
 | 辅色 | `bg-blue-500` / `text-blue-500` | #3B82F6 | 信息提示、链接 |
-| 页面背景 | `bg-amber-50/30` | #FFFBF5 | 页面整体背景色 |
+| 页面背景 | `bg-[#F0F8F4]` | #F0F8F4 | 页面整体背景色 |
 | 卡片背景 | `bg-white` | #FFFFFF | 卡片容器 |
 | 文字主色 | `text-gray-800` | #1F2937 | 标题、正文 |
 | 文字辅色 | `text-gray-500` | #6B7280 | 说明文字、时间 |
@@ -26,7 +27,7 @@
 - 卡片标题：`text-base font-semibold text-gray-800`
 - 正文内容：`text-sm text-gray-700`
 - 辅助说明：`text-xs text-gray-500`
-- 关键数字：`text-lg font-bold text-orange-500`
+- 关键数字：`text-lg font-bold text-[#5EC4A0]`
 
 ## 间距系统
 
@@ -45,7 +46,7 @@
 ## 容器样式
 
 - 卡片：`bg-white rounded-2xl p-4 shadow-sm`
-- 页面容器：`min-h-full bg-amber-50/30`
+- 页面容器：`min-h-full bg-[#F0F8F4]`
 - 分组标题：`text-base font-semibold text-gray-800 mb-3`
 
 ## 导航结构
@@ -61,7 +62,7 @@ TabBar 5个页面：
 
 TabBar 配色：
 - 未选中文字：`#9CA3AF`（gray-400）
-- 选中文字：`#F97316`（orange-500，主色）
+- 选中文字：`#5EC4A0`（薄荷绿，主色）
 - 背景：`#FFFFFF`
 
 ## 状态展示

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { View, Text } from '@tarojs/components'
+import { View, Text, Image } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -113,6 +113,14 @@ const ProfilePage = () => {
     <View className="min-h-full bg-orange-50 pb-6">
       {/* 头部 */}
       <View className="bg-gradient-to-r from-orange-500 to-orange-400 px-4 pt-8 pb-10">
+        {/* 班级 Logo */}
+        <View className="flex justify-center mb-4">
+          <Image
+            src="/assets/logo.png"
+            mode="aspectFit"
+            className="w-24 h-24 rounded-full bg-white p-1 shadow-lg"
+          />
+        </View>
         <View className="flex items-center gap-3">
           <View className="w-16 h-16 rounded-full bg-orange-300 flex items-center justify-center">
             <User size={32} color="#fff" />
