@@ -761,3 +761,51 @@ create(@Body() body: unknown) {
   return this.userService.create(result.data);
 }
 ```
+
+## 微信云开发
+
+本项目使用微信云开发（CloudBase）作为数据层，环境 ID：`cloudbase-d4gknzarya5d2b231`。
+
+### 云函数部署
+
+云函数位于 `cloudfunctions/` 目录，每个函数含独立的 `package.json` 和 `index.js`。
+
+**部署步骤：**
+
+1. 在微信开发者工具中打开项目
+2. 开通云开发（如未开通），环境选择 `cloudbase-d4gknzarya5d2b231`
+3. 右键 `cloudfunctions/login` 文件夹 → "上传并部署：云端安装依赖"
+4. 右键 `cloudfunctions/classCreate` 文件夹 → "上传并部署：云端安装依赖"
+5. 右键 `cloudfunctions/classJoin` 文件夹 → "上传并部署：云端安装依赖"
+
+### 数据库集合
+
+在云开发控制台手动创建以下 4 个集合：
+
+| 集合名 | 说明 |
+|--------|------|
+| `schools` | 学校信息 |
+| `classes` | 班级信息（含邀请码） |
+| `class_members` | 班级成员（关联 openid 和角色） |
+| `roster` | 家长清单（家委导入，第2批实现） |
+
+### 数据库安全规则
+
+建议为每个集合配置以下基础安全规则（仅允许登录用户读写）：
+
+```json
+{
+  "read": "auth.openid != null",
+  "write": "auth.openid != null"
+}
+```
+
+后续可按需细化为按 `class_id` + `class_members` 校验的细粒度规则。
+
+### 云函数说明
+
+| 函数名 | 功能 | 入参 |
+|--------|------|------|
+| `login` | 获取 openid + 已加入班级列表 | 无 |
+| `classCreate` | 创建班级，生成3个邀请码 | `school_name, class_name, grade` |
+| `classJoin` | 通过邀请码加入班级 | `invite_code, student_name, parent_name, phone, relation` |

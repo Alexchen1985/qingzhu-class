@@ -6,7 +6,8 @@ export default typeof defineAppConfig === 'function'
         'pages/activity/index',
         'pages/finance/index',
         'pages/profile/index',
-        'pages/duty/index'
+        'pages/duty/index',
+        'pages/onboarding/index'
       ],
       window: {
         backgroundTextStyle: 'light',
@@ -60,7 +61,8 @@ export default typeof defineAppConfig === 'function'
         'pages/activity/index',
         'pages/finance/index',
         'pages/profile/index',
-        'pages/duty/index'
+        'pages/duty/index',
+        'pages/onboarding/index'
       ],
       window: {
         backgroundTextStyle: 'light',

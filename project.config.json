@@ -1,7 +1,7 @@
 {
   "miniprogramRoot": "./dist",
   "projectname": "coze-mini-program",
-  "description": "test",
+  "description": "家委助手 - 小学班级家委会信息整合管理",
   "appid": "touristappid",
   "setting": {
     "urlCheck": true,
@@ -12,5 +12,6 @@
     "minified": false
   },
   "compileType": "miniprogram",
+  "cloudfunctionRoot": "./cloudfunctions/",
   "packOptions": { "ignore": [{ "type": "folder", "value": "./assets" }] }
 }
