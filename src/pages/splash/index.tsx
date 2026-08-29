@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import Taro from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
-import { Leaf } from 'lucide-react-taro'
+import { GraduationCap } from 'lucide-react-taro'
 
 function Splash() {
   useEffect(() => {
@@ -22,21 +22,21 @@ function Splash() {
     <View className="flex flex-col items-center justify-center min-h-full bg-gradient-to-b from-[#5EC4A0] to-[#4AA886]">
       {/* Logo */}
       <View className="w-32 h-32 rounded-full bg-white p-3 shadow-lg mb-6 flex items-center justify-center">
-        <Leaf size={64} color="#5EC4A0" />
+        <GraduationCap size={64} color="#5EC4A0" />
       </View>
 
       {/* 品牌名 */}
       <Text className="block text-2xl font-bold text-white mb-2">
-        信息公开平台
+        班级信息公开平台
       </Text>
-      <Text className="block text-base text-white opacity-80">
+      <Text className="block text-xl text-white font-medium opacity-90">
         青竹班
       </Text>
 
       {/* 底部标语 */}
       <View className="absolute bottom-16">
-        <Text className="block text-xs text-white opacity-60 text-center">
-          南京南站小学 · 家校信息公示
+        <Text className="block text-sm text-white opacity-70 text-center">
+          南站小学 · 班级信息公开平台
         </Text>
       </View>
     </View>
