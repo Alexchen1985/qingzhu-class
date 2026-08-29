@@ -138,7 +138,16 @@ const OnboardingPage = () => {
         Taro.switchTab({ url: '/pages/index/index' })
       }, 1500)
     } catch (err) {
-      Taro.showToast({ title: (err as Error).message || '加入失败', icon: 'none' })
+      const errMsg = (err as Error).message || '加入失败'
+      // 如果已经加入过班级，直接跳转到首页
+      if (errMsg.includes('已加入')) {
+        Taro.showToast({ title: '您已加入该班级', icon: 'none' })
+        setTimeout(() => {
+          Taro.switchTab({ url: '/pages/index/index' })
+        }, 1500)
+      } else {
+        Taro.showToast({ title: errMsg, icon: 'none' })
+      }
     } finally {
       setJoining(false)
     }
