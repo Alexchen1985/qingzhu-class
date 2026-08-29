@@ -18,12 +18,15 @@ import {
 import {
   getAnnouncementList,
   getFeeRecordList,
+  getActivityList,
   type CloudAnnouncement,
+  type CloudActivity,
 } from '@/services/cloud'
-import { getCurrentClassId, getUserRole } from '@/store'
+import { getCurrentClassId, getUserRole, getRoleLabel } from '@/store'
 
 const IndexPage = () => {
   const [announcements, setAnnouncements] = useState<CloudAnnouncement[]>([])
+  const [activities, setActivities] = useState<CloudActivity[]>([])
   const [balance, setBalance] = useState(0)
   const [studentName, setStudentName] = useState('')
   const [className, setClassName] = useState('')
@@ -44,6 +47,10 @@ const IndexPage = () => {
       const announcementResult = await getAnnouncementList(classId)
       setAnnouncements(announcementResult.announcements || [])
       
+      // 获取活动列表
+      const activityList = await getActivityList(classId)
+      setActivities(activityList || [])
+      
       // 获取班费统计
       const feeResult = await getFeeRecordList(classId)
       const totalIncome = feeResult.total_income || 0
@@ -51,7 +58,8 @@ const IndexPage = () => {
       setBalance(totalIncome - totalExpense)
       
       // 获取用户信息
-      setRole(getUserRole() || '家长')
+      const roleEn = getUserRole() || 'parent'
+      setRole(getRoleLabel(roleEn))
       
       // 从本地缓存获取班级和学生信息
       const currentClass = Taro.getStorageSync('app_current_class')
@@ -72,6 +80,10 @@ const IndexPage = () => {
 
   const unreadCount = announcements.filter(
     (a) => a.need_confirm && !a.is_read && a.approve_status === 'approved'
+  ).length
+
+  const activeActivityCount = activities.filter(
+    (a) => a.status === 'active'
   ).length
 
   const handleNavigate = (url: string) => {
@@ -144,7 +156,7 @@ const IndexPage = () => {
               <Text className="block text-xs text-white opacity-80">活动</Text>
             </View>
             <Text className="block text-lg font-bold text-white">
-              进行中
+              {activeActivityCount > 0 ? `${activeActivityCount}个进行中` : '暂无活动'}
             </Text>
           </View>
 
