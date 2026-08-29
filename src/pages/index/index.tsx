@@ -134,43 +134,55 @@ const IndexPage = () => {
         <View className="flex gap-3">
           {/* 公告概览 */}
           <View
-            className="flex-1 bg-white rounded-2xl p-4 shadow-sm"
+            className="flex-1 bg-gradient-to-br from-[#5EC4A0] to-[#4AA886] rounded-2xl p-4 shadow-md"
             onClick={() => handleSwitchTab('/pages/notice/index')}
           >
-            <View className="flex items-center gap-1.5 mb-2">
-              <Megaphone size={16} color="#5EC4A0" />
-              <Text className="block text-sm text-gray-500">公告</Text>
+            <View className="flex items-center justify-between mb-3">
+              <View className="w-10 h-10 rounded-full bg-white bg-opacity-25 flex items-center justify-center">
+                <Megaphone size={20} color="#fff" />
+              </View>
             </View>
-            <Text className="block text-xl font-medium text-gray-700">
-              {unreadCount > 0 ? `${unreadCount}条未读` : '全部已读'}
+            <Text className="block text-2xl font-bold text-white mb-1">
+              {unreadCount > 0 ? `${unreadCount}` : '0'}
+            </Text>
+            <Text className="block text-xs text-white opacity-80">
+              {unreadCount > 0 ? '条未读公告' : '全部已读'}
             </Text>
           </View>
 
           {/* 活动概览 */}
           <View
-            className="flex-1 bg-white rounded-2xl p-4 shadow-sm"
+            className="flex-1 bg-gradient-to-br from-[#60A5FA] to-[#3B82F6] rounded-2xl p-4 shadow-md"
             onClick={() => handleSwitchTab('/pages/activity/index')}
           >
-            <View className="flex items-center gap-1.5 mb-2">
-              <Calendar size={16} color="#5EC4A0" />
-              <Text className="block text-sm text-gray-500">活动</Text>
+            <View className="flex items-center justify-between mb-3">
+              <View className="w-10 h-10 rounded-full bg-white bg-opacity-25 flex items-center justify-center">
+                <Calendar size={20} color="#fff" />
+              </View>
             </View>
-            <Text className="block text-xl font-medium text-gray-700">
-              {activeActivityCount > 0 ? `${activeActivityCount}个进行中` : '暂无活动'}
+            <Text className="block text-2xl font-bold text-white mb-1">
+              {activeActivityCount > 0 ? `${activeActivityCount}` : '0'}
+            </Text>
+            <Text className="block text-xs text-white opacity-80">
+              {activeActivityCount > 0 ? '个进行中' : '暂无活动'}
             </Text>
           </View>
 
           {/* 班费概览 */}
           <View
-            className="flex-1 bg-white rounded-2xl p-4 shadow-sm"
+            className="flex-1 bg-gradient-to-br from-[#FBBF24] to-[#F59E0B] rounded-2xl p-4 shadow-md"
             onClick={() => handleSwitchTab('/pages/finance/index')}
           >
-            <View className="flex items-center gap-1.5 mb-2">
-              <Wallet size={16} color="#5EC4A0" />
-              <Text className="block text-sm text-gray-500">班费余额</Text>
+            <View className="flex items-center justify-between mb-3">
+              <View className="w-10 h-10 rounded-full bg-white bg-opacity-25 flex items-center justify-center">
+                <Wallet size={20} color="#fff" />
+              </View>
             </View>
-            <Text className="block text-xl font-medium text-gray-700">
+            <Text className="block text-2xl font-bold text-white mb-1">
               ¥{(balance / 100).toFixed(0)}
+            </Text>
+            <Text className="block text-xs text-white opacity-80">
+              班费余额
             </Text>
           </View>
         </View>
