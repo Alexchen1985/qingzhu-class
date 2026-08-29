@@ -68,7 +68,7 @@ const NoticePage = () => {
 
   const [role, setRole] = useState(getUserRole())
 
-  const isManager = role === 'admin' || role === 'head_teacher' || role === 'committee'
+  const isManager = role === 'admin' || role === 'head_teacher' || role === 'committee' || role === 'teacher'
   const canPublish = role === 'admin' || role === 'head_teacher' || role === 'teacher' || role === 'committee'
 
   const pendingList = announcements.filter((a) => a.approve_status === 'pending')

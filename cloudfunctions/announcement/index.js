@@ -107,7 +107,7 @@ async function handleList(openid, event) {
     .get()
 
   const role = memberRes.data.length > 0 ? memberRes.data[0].role : 'parent'
-  const isManager = role === 'admin' || role === 'head_teacher' || role === 'committee'
+  const isManager = role === 'admin' || role === 'head_teacher' || role === 'committee' || role === 'teacher' || role === 'teacher'
 
   // 构建查询条件
   let query = { class_id }
