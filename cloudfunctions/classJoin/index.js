@@ -5,14 +5,14 @@ const db = cloud.database()
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
-  const { invite_code, student_name, parent_name, phone, relation } = event
+  const { invite_code, phone } = event
 
   // 参数校验
   if (!invite_code) {
     return { code: -1, message: '请输入邀请码', data: null }
   }
-  if (!parent_name || !phone) {
-    return { code: -1, message: '请填写完整信息', data: null }
+  if (!phone || phone.length !== 11) {
+    return { code: -1, message: '请输入正确的手机号', data: null }
   }
 
   try {
@@ -72,15 +72,18 @@ exports.main = async (event, context) => {
       return { code: -1, message: '您已加入该班级', data: null }
     }
 
-    // 3. 家长码需要 roster 校验
+    // 3. 家长码需要从 roster 中匹配学生信息
+    let student_name = ''
+    let parent_name = ''
+    let relation = '家长'
     let rosterId = ''
+
     if (isParentCode) {
+      // 根据手机号在 roster 中查找
       const rosterRes = await db
         .collection('roster')
         .where({
           class_id: targetClass._id,
-          student_name: student_name,
-          parent_name: parent_name,
           phone: phone,
         })
         .get()
@@ -88,11 +91,19 @@ exports.main = async (event, context) => {
       if (rosterRes.data.length === 0) {
         return {
           code: -2,
-          message: 'ROSTER_NOT_MATCHED',
+          message: '该手机号不在班级名单中，请联系管理员导入名单',
           data: null,
         }
       }
-      rosterId = rosterRes.data[0]._id
+
+      const rosterItem = rosterRes.data[0]
+      student_name = rosterItem.student_name
+      parent_name = rosterItem.parent_name
+      relation = rosterItem.relation || '家长'
+      rosterId = rosterItem._id
+    } else {
+      // 教师/家委：使用手机号作为标识
+      parent_name = phone
     }
 
     // 4. 写入 class_members
@@ -103,7 +114,7 @@ exports.main = async (event, context) => {
       student_name: student_name,
       parent_name: parent_name,
       phone: phone,
-      relation: relation || '',
+      relation: relation,
       status: 'active',
       created_at: db.serverDate(),
     }
@@ -125,18 +136,18 @@ exports.main = async (event, context) => {
           .get()
         schoolName = schoolRes.data.name || ''
       } catch (e) {
-        // ignore
+        // 忽略学校查询错误
       }
     }
-
-    // 6. 返回结果
-    const memberDoc = await db.collection('class_members').doc(addRes._id).get()
 
     return {
       code: 0,
       message: 'ok',
       data: {
-        member: memberDoc.data,
+        member: {
+          _id: addRes._id,
+          ...memberData,
+        },
         className: targetClass.name,
         schoolName: schoolName,
       },

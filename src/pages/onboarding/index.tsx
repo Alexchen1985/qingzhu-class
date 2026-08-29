@@ -33,10 +33,7 @@ const OnboardingPage = () => {
 
   // 加入班级表单
   const [inviteCode, setInviteCode] = useState('')
-  const [studentName, setStudentName] = useState('')
-  const [parentName, setParentName] = useState('')
   const [phone, setPhone] = useState('')
-  const [relation, setRelation] = useState('')
   const [joining, setJoining] = useState(false)
 
   const [copiedField, setCopiedField] = useState('')
@@ -96,18 +93,15 @@ const OnboardingPage = () => {
   }
 
   const handleJoin = async () => {
-    if (!inviteCode.trim() || !parentName.trim() || !phone.trim()) {
-      Taro.showToast({ title: '请填写完整信息', icon: 'none' })
+    if (!inviteCode.trim() || !phone.trim() || phone.length !== 11) {
+      Taro.showToast({ title: '请输入邀请码和正确的手机号', icon: 'none' })
       return
     }
     setJoining(true)
     try {
       const result = await classJoin({
         invite_code: inviteCode.trim(),
-        student_name: studentName.trim(),
-        parent_name: parentName.trim(),
         phone: phone.trim(),
-        relation: relation.trim(),
       })
 
       // 设置当前班级
@@ -264,27 +258,9 @@ const OnboardingPage = () => {
                     </View>
                   </View>
                   <View>
-                    <Label className="text-sm text-gray-700 mb-1 block">学生姓名</Label>
-                    <View className="bg-gray-50 rounded-xl px-3 py-2">
-                      <Input className="w-full bg-transparent" placeholder="请输入学生姓名（教师可不填）" value={studentName} onInput={(e) => setStudentName(e.detail.value)} />
-                    </View>
-                  </View>
-                  <View>
-                    <Label className="text-sm text-gray-700 mb-1 block">姓名 *</Label>
-                    <View className="bg-gray-50 rounded-xl px-3 py-2">
-                      <Input className="w-full bg-transparent" placeholder="请输入家长/教师姓名" value={parentName} onInput={(e) => setParentName(e.detail.value)} />
-                    </View>
-                  </View>
-                  <View>
                     <Label className="text-sm text-gray-700 mb-1 block">手机号 *</Label>
                     <View className="bg-gray-50 rounded-xl px-3 py-2">
-                      <Input className="w-full bg-transparent" placeholder="请输入手机号" type="number" value={phone} onInput={(e) => setPhone(e.detail.value)} maxlength={11} />
-                    </View>
-                  </View>
-                  <View>
-                    <Label className="text-sm text-gray-700 mb-1 block">与学生关系</Label>
-                    <View className="bg-gray-50 rounded-xl px-3 py-2">
-                      <Input className="w-full bg-transparent" placeholder="如：父亲、母亲、祖父（教师可不填）" value={relation} onInput={(e) => setRelation(e.detail.value)} />
+                      <Input className="w-full bg-transparent" placeholder="请输入11位手机号" type="number" value={phone} onInput={(e) => setPhone(e.detail.value)} maxlength={11} />
                     </View>
                   </View>
                   <Button className="w-full bg-[#5EC4A0] text-white" onClick={handleJoin} disabled={joining}>
