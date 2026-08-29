@@ -79,9 +79,8 @@ const OnboardingPage = () => {
         <View className="w-20 h-20 rounded-full bg-[#E0F5ED] flex items-center justify-center mb-4">
           <GraduationCap size={40} color="#5EC4A0" />
         </View>
-        <Text className="block text-2xl font-bold text-gray-800">南站小学</Text>
-        <Text className="block text-lg text-[#5EC4A0] font-medium mt-1">班级信息公开平台</Text>
-        <Text className="block text-sm text-gray-500 mt-2">输入邀请码和手机号加入班级</Text>
+        <Text className="block text-xl font-bold text-gray-800">欢迎使用班级信息公开平台</Text>
+        <Text className="block text-sm text-gray-500 mt-1">输入邀请码和手机号加入班级</Text>
       </View>
 
       <Card className="shadow-sm border-0">
