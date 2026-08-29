@@ -77,8 +77,9 @@ exports.main = async (event, context) => {
     let parent_name = ''
     let relation = '家长'
     let rosterId = ''
+    let actualRole = role
 
-    // 无论使用什么邀请码，都先检查手机号是否在 roster 中
+    // 无论使用什么邀请码，都必须先在 roster 中查找
     const rosterRes = await db
       .collection('roster')
       .where({
@@ -87,39 +88,39 @@ exports.main = async (event, context) => {
       })
       .get()
 
-    if (rosterRes.data.length > 0) {
-      // 手机号在名单中，说明是家长
-      const rosterItem = rosterRes.data[0]
-      student_name = rosterItem.student_name
-      parent_name = rosterItem.parent_name
-      relation = rosterItem.relation || '家长'
-      rosterId = rosterItem._id
-      
-      // 如果使用家长码，角色为 parent
-      // 如果使用教师码/家委码，但手机号在名单中，也设置为 parent
-      if (!isParentCode) {
-        role = 'parent'
+    if (rosterRes.data.length === 0) {
+      // 手机号不在名单中，拒绝加入
+      return {
+        code: -2,
+        message: '该手机号不在班级名单中，请联系管理员导入名单',
+        data: null,
       }
+    }
+
+    // 手机号在名单中，获取信息
+    const rosterItem = rosterRes.data[0]
+    student_name = rosterItem.student_name
+    parent_name = rosterItem.parent_name
+    relation = rosterItem.relation || '家长'
+    rosterId = rosterItem._id
+
+    // 根据名单中的角色字段确定实际角色（如果名单中有 role 字段）
+    // 否则根据邀请码类型判断
+    if (rosterItem.role) {
+      actualRole = rosterItem.role
     } else {
-      // 手机号不在名单中
-      if (isParentCode) {
-        // 使用家长码但不在名单中，拒绝加入
-        return {
-          code: -2,
-          message: '该手机号不在班级名单中，请联系管理员导入名单',
-          data: null,
-        }
-      } else {
-        // 使用教师码/家委码，不在名单中也可以加入
-        parent_name = phone
-      }
+      // 名单中没有 role 字段，根据邀请码类型判断
+      // 家长码 → parent
+      // 教师码 → teacher
+      // 家委码 → committee
+      actualRole = role
     }
 
     // 4. 写入 class_members
     const memberData = {
       class_id: targetClass._id,
       openid: openid,
-      role: role,
+      role: actualRole,
       student_name: student_name,
       parent_name: parent_name,
       phone: phone,

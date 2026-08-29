@@ -31,6 +31,7 @@ export default function RosterPage() {
   const [newParentName, setNewParentName] = useState('')
   const [newPhone, setNewPhone] = useState('')
   const [newRelation, setNewRelation] = useState('家长')
+  const [newRole, setNewRole] = useState('parent')
 
   // 编辑表单
   const [editingItem, setEditingItem] = useState<RosterItem | null>(null)
@@ -38,6 +39,7 @@ export default function RosterPage() {
   const [editParentName, setEditParentName] = useState('')
   const [editPhone, setEditPhone] = useState('')
   const [editRelation, setEditRelation] = useState('')
+  const [editRole, setEditRole] = useState('parent')
 
   const classId = getCurrentClassId()
 
@@ -95,6 +97,7 @@ export default function RosterPage() {
         parent_name: newParentName,
         phone: newPhone,
         relation: newRelation,
+        role: newRole,
       })
       Taro.showToast({ title: '添加成功', icon: 'success' })
       setShowAdd(false)
@@ -129,6 +132,7 @@ export default function RosterPage() {
     setEditParentName(item.parent_name)
     setEditPhone(item.phone)
     setEditRelation(item.relation)
+    setEditRole(item.role || 'parent')
   }
 
   const handleSaveEdit = async () => {
@@ -143,6 +147,7 @@ export default function RosterPage() {
         parent_name: editParentName,
         phone: editPhone,
         relation: editRelation,
+        role: editRole,
       })
       // 删除旧记录
       if (editingItem) {
@@ -162,6 +167,7 @@ export default function RosterPage() {
     setNewParentName('')
     setNewPhone('')
     setNewRelation('家长')
+    setNewRole('parent')
   }
 
   if (loading) {
@@ -287,7 +293,7 @@ export default function RosterPage() {
           </DialogHeader>
           <View className="space-y-4">
             <Text className="block text-sm text-gray-500">
-              每行一条，格式：学生姓名,家长姓名,手机号,关系（关系可省略）
+              每行一条，格式：学生姓名,家长姓名,手机号,关系,角色（角色可选：parent/teacher/committee/head_teacher）
             </Text>
             <View className="bg-gray-50 rounded-xl p-3">
               <Textarea
@@ -372,6 +378,43 @@ export default function RosterPage() {
                 />
               </View>
             </View>
+            <View>
+              <Text className="block text-sm text-gray-600 mb-1">角色</Text>
+              <View className="flex gap-2">
+                <Button
+                  variant={newRole === 'parent' ? 'default' : 'outline'}
+                  size="sm"
+                  className={newRole === 'parent' ? 'bg-[#5EC4A0]' : ''}
+                  onClick={() => setNewRole('parent')}
+                >
+                  家长
+                </Button>
+                <Button
+                  variant={newRole === 'teacher' ? 'default' : 'outline'}
+                  size="sm"
+                  className={newRole === 'teacher' ? 'bg-[#5EC4A0]' : ''}
+                  onClick={() => setNewRole('teacher')}
+                >
+                  老师
+                </Button>
+                <Button
+                  variant={newRole === 'committee' ? 'default' : 'outline'}
+                  size="sm"
+                  className={newRole === 'committee' ? 'bg-[#5EC4A0]' : ''}
+                  onClick={() => setNewRole('committee')}
+                >
+                  家委
+                </Button>
+                <Button
+                  variant={newRole === 'head_teacher' ? 'default' : 'outline'}
+                  size="sm"
+                  className={newRole === 'head_teacher' ? 'bg-[#5EC4A0]' : ''}
+                  onClick={() => setNewRole('head_teacher')}
+                >
+                  班主任
+                </Button>
+              </View>
+            </View>
             <View className="flex gap-3 pt-2">
               <Button variant="outline" className="flex-1" onClick={() => { setShowAdd(false); resetAddForm() }}>
                 取消
@@ -434,6 +477,43 @@ export default function RosterPage() {
                   value={editRelation}
                   onInput={(e) => setEditRelation(e.detail.value)}
                 />
+              </View>
+            </View>
+            <View>
+              <Text className="block text-sm text-gray-600 mb-1">角色</Text>
+              <View className="flex gap-2">
+                <Button
+                  variant={editRole === 'parent' ? 'default' : 'outline'}
+                  size="sm"
+                  className={editRole === 'parent' ? 'bg-[#5EC4A0]' : ''}
+                  onClick={() => setEditRole('parent')}
+                >
+                  家长
+                </Button>
+                <Button
+                  variant={editRole === 'teacher' ? 'default' : 'outline'}
+                  size="sm"
+                  className={editRole === 'teacher' ? 'bg-[#5EC4A0]' : ''}
+                  onClick={() => setEditRole('teacher')}
+                >
+                  老师
+                </Button>
+                <Button
+                  variant={editRole === 'committee' ? 'default' : 'outline'}
+                  size="sm"
+                  className={editRole === 'committee' ? 'bg-[#5EC4A0]' : ''}
+                  onClick={() => setEditRole('committee')}
+                >
+                  家委
+                </Button>
+                <Button
+                  variant={editRole === 'head_teacher' ? 'default' : 'outline'}
+                  size="sm"
+                  className={editRole === 'head_teacher' ? 'bg-[#5EC4A0]' : ''}
+                  onClick={() => setEditRole('head_teacher')}
+                >
+                  班主任
+                </Button>
               </View>
             </View>
             <View className="flex gap-3 pt-2">

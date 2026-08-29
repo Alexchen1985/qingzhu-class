@@ -54,7 +54,7 @@ async function handleList(class_id) {
 
 // 手动添加单条
 async function handleAdd(event, openid) {
-  const { class_id, student_name, parent_name, phone, relation } = event
+  const { class_id, student_name, parent_name, phone, relation, role } = event
   if (!class_id || !student_name || !parent_name || !phone) {
     return { code: -1, message: '缺少必要参数', data: null }
   }
@@ -66,6 +66,7 @@ async function handleAdd(event, openid) {
       parent_name,
       phone,
       relation: relation || '家长',
+      role: role || 'parent',  // 新增：角色字段
       imported_by: openid,
       created_at: db.serverDate(),
     },
@@ -107,6 +108,7 @@ async function handleImport(event, openid) {
     const parent_name = parts[1]
     const phone = parts[2] || ''
     const relation = parts[3] || '家长'
+    const role = parts[4] || 'parent'  // 新增：角色字段
 
     if (!student_name || !parent_name) continue
 
@@ -128,6 +130,7 @@ async function handleImport(event, openid) {
         parent_name,
         phone,
         relation,
+        role,  // 新增：角色字段
         imported_by: openid,
         created_at: db.serverDate(),
       },
