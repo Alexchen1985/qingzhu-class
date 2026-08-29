@@ -13,6 +13,7 @@ import {
   Clock,
   Users,
   FileText,
+  GraduationCap,
 } from 'lucide-react-taro'
 import {
   initStorage,
@@ -81,9 +82,12 @@ const IndexPage = () => {
       {/* 顶部班级信息卡片 */}
       <View className="bg-gradient-to-r from-[#5EC4A0] to-[#4AA886] px-4 pt-8 pb-6">
         <View className="flex items-center justify-between mb-4">
-          <View>
-            <Text className="block text-xl font-bold text-white">{className}</Text>
-            <Text className="block text-sm text-white opacity-80">
+          <View className="flex-1">
+            <View className="flex items-center gap-2 mb-2">
+              <GraduationCap size={28} color="#fff" />
+              <Text className="block text-2xl font-bold text-white">{className}</Text>
+            </View>
+            <Text className="block text-base text-white opacity-90">
               {studentName ? `${studentName} 的家长` : '欢迎'} · {role}
             </Text>
           </View>
