@@ -774,42 +774,71 @@ create(@Body() body: unknown) {
 
 1. 在微信开发者工具中打开项目
 2. 开通云开发（如未开通），环境选择 `cloudbase-d4gknzarya5d2b231`
-3. 右键 `cloudfunctions/login` 文件夹 → "上传并部署：云端安装依赖"
-4. 右键 `cloudfunctions/classCreate` 文件夹 → "上传并部署：云端安装依赖"
-5. 右键 `cloudfunctions/classJoin` 文件夹 → "上传并部署：云端安装依赖"
+3. 逐个右键以下函数文件夹 → "上传并部署：云端安装依赖"：
+   - `cloudfunctions/login`
+   - `cloudfunctions/classCreate`
+   - `cloudfunctions/classJoin`
+   - `cloudfunctions/rosterImport`
+   - `cloudfunctions/announcement`
+   - `cloudfunctions/activity`
+   - `cloudfunctions/fee`
+   - `cloudfunctions/duty`
 
 ### 数据库集合
 
-在云开发控制台手动创建以下 6 个集合：
+在云开发控制台手动创建以下 12 个集合：
 
 | 集合名 | 说明 |
 |--------|------|
 | `schools` | 学校信息 |
-| `classes` | 班级信息（含邀请码） |
+| `classes` | 班级信息（含邀请码、settings、plan） |
 | `class_members` | 班级成员（关联 openid 和角色） |
 | `roster` | 家长清单（家委导入，家长加入时匹配校验） |
 | `announcements` | 班级公告（含类型、审批状态、图片等） |
 | `announcement_reads` | 公告已读记录 |
+| `activities` | 活动信息 |
+| `activity_signups` | 活动报名记录 |
+| `fee_records` | 班费收支流水（金额以分存储） |
+| `fee_collections` | 收费项目（如"秋季班费200元/人"） |
+| `fee_payments` | 按学生的缴费登记 |
+| `duty_schedules` | 值日排班记录 |
 
 ### 数据库安全规则
 
-建议为每个集合配置以下基础安全规则（仅允许登录用户读写）：
+**核心原则：前端不直连数据库写操作，所有写走云函数（云函数内校验角色）。**
+
+建议为所有业务集合配置以下安全规则（读允许登录用户，写全部走云函数 admin 端）：
 
 ```json
 {
   "read": "auth.openid != null",
-  "write": "auth.openid != null"
+  "write": false
 }
 ```
 
-后续可按需细化为按 `class_id` + `class_members` 校验的细粒度规则。
+> 说明：云函数使用服务端 SDK（`wx-server-sdk`）不受此规则限制，可正常读写。
+> 前端所有数据操作通过 `callFunction` 调用云函数，云函数内部做角色/权限校验后再操作数据库。
 
-### 云函数说明
+### 云函数清单
 
-| 函数名 | 功能 | 入参 |
-|--------|------|------|
-| `login` | 获取 openid + 已加入班级列表 | 无 |
-| `classCreate` | 创建班级，生成3个邀请码 | `school_name, class_name, grade` |
-| `classJoin` | 通过邀请码加入班级（家长码需 roster 匹配） | `invite_code, student_name, parent_name, phone, relation` |
-| `rosterImport` | 批量导入家长名单 | `class_id, text`（多行文本） |
-| `announcement` | 公告管理（发布/列表/已读/统计/审批） | `action: publish/list/markRead/stats/approve` |
+| 函数名 | 功能 | action 一览 |
+|--------|------|-------------|
+| `login` | 获取 openid + 已加入班级列表 | 无 action |
+| `classCreate` | 创建班级，生成3个邀请码 | 无 action |
+| `classJoin` | 通过邀请码加入班级（家长码需 roster 匹配） | 无 action |
+| `rosterImport` | 批量导入家长名单 | 无 action |
+| `announcement` | 公告管理 | `publish` / `list` / `markRead` / `stats` / `approve` |
+| `activity` | 活动报名管理 | `create` / `list` / `signup` / `mySignups` / `signupList` / `cancel` |
+| `fee` | 班费管理（teacher 角色一律拒绝） | `recordAdd` / `recordDelete` / `recordList` / `collectionCreate` / `collectionList` / `paymentMark` |
+| `duty` | 值日排班管理 | `weekList` / `batchSet` / `autoRotate` / `myDuty` |
+
+### 完整验收流程
+
+1. **建班**：班主任打开小程序 → 创建班级 → 获得3个邀请码
+2. **发邀请码**：家长码发家长群，教师码发任课老师，家委码发家委
+3. **导入名单**：家委进入"家长名单管理" → 批量导入学生名单
+4. **家长加入**：家长扫码/输入家长邀请码 → 自动匹配名单 → 加入班级
+5. **发公告**：班主任发官方通知（红），家委发家委通知（蓝，需审批），老师发学科通知（黄）
+6. **活动报名**：家委创建活动 → 家长报名 → 查看名单
+7. **班费记账**：家委登记收支 → 创建收费项目 → 标记缴费状态
+8. **值日排班**：家委设置排班/自动轮换 → 家长查看自己孩子值日

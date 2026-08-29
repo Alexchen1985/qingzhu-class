@@ -16,6 +16,9 @@ const KEYS = {
   duties: 'app_duties',
   profile: 'app_profile',
   initialized: 'app_initialized',
+  currentClassId: 'app_current_class_id',
+  currentUserRole: 'app_current_user_role',
+  currentStudentName: 'app_current_student_name',
 }
 
 function genId(): string {
@@ -336,4 +339,34 @@ export function updateProfile(profile: Partial<UserProfile>): UserProfile {
   const updated = { ...current, ...profile }
   setStorage(KEYS.profile, updated)
   return updated
+}
+
+/** 获取当前班级 ID */
+export function getCurrentClassId(): string {
+  return getStorage<string>(KEYS.currentClassId, '')
+}
+
+/** 设置当前班级 ID */
+export function setCurrentClassId(classId: string): void {
+  setStorage(KEYS.currentClassId, classId)
+}
+
+/** 获取当前用户在当前班级的角色 */
+export function getUserRole(): string {
+  return getStorage<string>(KEYS.currentUserRole, 'parent')
+}
+
+/** 设置当前用户角色 */
+export function setUserRole(role: string): void {
+  setStorage(KEYS.currentUserRole, role)
+}
+
+/** 获取当前学生姓名 */
+export function getCurrentStudentName(): string {
+  return getStorage<string>(KEYS.currentStudentName, '')
+}
+
+/** 设置当前学生姓名 */
+export function setCurrentStudentName(name: string): void {
+  setStorage(KEYS.currentStudentName, name)
 }

@@ -1,415 +1,412 @@
+/**
+ * 活动报名页面 - 云开发版
+ * 数据来源：activity 云函数
+ */
 import { useState, useCallback } from 'react'
-import { View, Text } from '@tarojs/components'
+import { View, Text, ScrollView } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Calendar, MapPin, Users, Clock, Plus, X, UserCheck, ChevronRight } from 'lucide-react-taro'
 import {
-  Calendar,
-  Plus,
-  MapPin,
-  Clock,
-  Users,
-  UserPlus,
-  List,
-  CircleX,
-} from 'lucide-react-taro'
-import {
-  initStorage,
-  getActivities,
-  addActivity,
-  registerActivity,
-  cancelActivity,
-  getProfile,
-} from '@/store'
-import type { Activity } from '@/store/types'
+  getActivityList, createActivity, signupActivity,
+  getActivitySignupList, cancelActivity,
+  type CloudActivity, type CloudSignup
+} from '@/services/cloud'
+import { getCurrentClassId, getUserRole } from '@/store'
 
-const ActivityPage = () => {
-  const [activities, setActivities] = useState<Activity[]>([])
-  const [showCreateDialog, setShowCreateDialog] = useState(false)
-  const [showRegisterDialog, setShowRegisterDialog] = useState(false)
-  const [showListDialog, setShowListDialog] = useState(false)
-  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null)
-  const [isCommittee, setIsCommittee] = useState(false)
+const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> = {
+  open: { label: '进行中', color: 'text-green-600', bg: 'bg-green-50' },
+  closed: { label: '已截止', color: 'text-gray-500', bg: 'bg-gray-50' },
+  finished: { label: '已结束', color: 'text-gray-400', bg: 'bg-gray-50' },
+  cancelled: { label: '已取消', color: 'text-red-500', bg: 'bg-red-50' },
+}
 
-  // 创建活动表单
-  const [formName, setFormName] = useState('')
-  const [formTime, setFormTime] = useState('')
-  const [formLocation, setFormLocation] = useState('')
-  const [formMaxCount, setFormMaxCount] = useState('')
-  const [formDeadline, setFormDeadline] = useState('')
-  const [formRemark, setFormRemark] = useState('')
+export default function ActivityPage() {
+  const [activities, setActivities] = useState<CloudActivity[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showCreate, setShowCreate] = useState(false)
+  const [showSignup, setShowSignup] = useState(false)
+  const [showSignups, setShowSignups] = useState(false)
+  const [selectedActivity, setSelectedActivity] = useState<CloudActivity | null>(null)
+  const [signupList, setSignupList] = useState<CloudSignup[]>([])
+  const [form, setForm] = useState({ title: '', description: '', location: '', start_time: '', deadline: '', max_participants: '' })
+  const [signupForm, setSignupForm] = useState({ student_name: '', contact: '', note: '' })
 
-  // 报名表单
-  const [regStudent, setRegStudent] = useState('')
-  const [regContact, setRegContact] = useState('')
-  const [regRemark, setRegRemark] = useState('')
+  const classId = getCurrentClassId()
+  const role = getUserRole()
+  const isManager = role === 'head_teacher' || role === 'committee'
+  const isTeacher = role === 'teacher'
 
-  const loadData = useCallback(() => {
-    initStorage()
-    setActivities(getActivities())
-    const profile = getProfile()
-    setIsCommittee(profile.role === 'committee')
-  }, [])
-
-  useDidShow(() => {
-    loadData()
-  })
-
-  const handleCreate = () => {
-    if (!formName.trim() || !formTime.trim() || !formMaxCount.trim()) {
-      Taro.showToast({ title: '请填写必要信息', icon: 'none' })
-      return
+  const loadActivities = useCallback(async () => {
+    if (!classId) return
+    try {
+      const list = await getActivityList(classId)
+      setActivities(list)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
     }
-    addActivity({
-      name: formName.trim(),
-      time: formTime.trim(),
-      location: formLocation.trim(),
-      maxCount: parseInt(formMaxCount) || 30,
-      deadline: formDeadline.trim() || new Date().toISOString(),
-      remark: formRemark.trim(),
-    })
-    resetCreateForm()
-    setShowCreateDialog(false)
-    loadData()
-    Taro.showToast({ title: '创建成功', icon: 'success' })
+  }, [classId])
+
+  useDidShow(() => { loadActivities() })
+
+  const handleCreate = async () => {
+    if (!form.title) { Taro.showToast({ title: '请输入活动名称', icon: 'none' }); return }
+    try {
+      await createActivity({
+        class_id: classId!, title: form.title, description: form.description,
+        location: form.location, start_time: form.start_time,
+        deadline: form.deadline, max_participants: parseInt(form.max_participants) || 0,
+      })
+      Taro.showToast({ title: '创建成功', icon: 'success' })
+      setShowCreate(false)
+      setForm({ title: '', description: '', location: '', start_time: '', deadline: '', max_participants: '' })
+      loadActivities()
+    } catch (e: unknown) {
+      Taro.showToast({ title: (e as Error)?.message || '创建失败', icon: 'none' })
+    }
   }
 
-  const resetCreateForm = () => {
-    setFormName('')
-    setFormTime('')
-    setFormLocation('')
-    setFormMaxCount('')
-    setFormDeadline('')
-    setFormRemark('')
-  }
-
-  const handleRegister = () => {
-    if (!selectedActivity || !regStudent.trim()) {
-      Taro.showToast({ title: '请填写学生姓名', icon: 'none' })
-      return
-    }
-    const result = registerActivity(selectedActivity.id, {
-      studentName: regStudent.trim(),
-      parentContact: regContact.trim(),
-      remark: regRemark.trim(),
-    })
-    if (result) {
-      setRegStudent('')
-      setRegContact('')
-      setRegRemark('')
-      setShowRegisterDialog(false)
-      loadData()
+  const handleSignup = async () => {
+    if (!signupForm.student_name) { Taro.showToast({ title: '请输入学生姓名', icon: 'none' }); return }
+    if (!selectedActivity) return
+    try {
+      await signupActivity({
+        activity_id: selectedActivity._id, class_id: classId!,
+        student_name: signupForm.student_name, contact: signupForm.contact, note: signupForm.note,
+      })
       Taro.showToast({ title: '报名成功', icon: 'success' })
-    } else {
-      Taro.showToast({ title: '报名人数已满', icon: 'none' })
+      setShowSignup(false)
+      setSignupForm({ student_name: '', contact: '', note: '' })
+      loadActivities()
+    } catch (e: unknown) {
+      const msg = (e as Error)?.message || '报名失败'
+      if (msg.includes('ALREADY')) Taro.showToast({ title: '您已报名', icon: 'none' })
+      else if (msg.includes('FULL')) Taro.showToast({ title: '名额已满', icon: 'none' })
+      else Taro.showToast({ title: msg, icon: 'none' })
     }
   }
 
-  const handleCancel = (activityId: string) => {
+  const handleViewSignups = async (activity: CloudActivity) => {
+    try {
+      const list = await getActivitySignupList(activity._id, classId!)
+      setSignupList(list)
+      setSelectedActivity(activity)
+      setShowSignups(true)
+    } catch (e: unknown) {
+      Taro.showToast({ title: (e as Error)?.message || '获取失败', icon: 'none' })
+    }
+  }
+
+  const handleCancelActivity = async (activityId: string) => {
     Taro.showModal({
-      title: '确认取消',
-      content: '确定要取消这个活动吗？',
-      success: (res) => {
+      title: '确认取消', content: '取消后所有报名将失效，确定取消此活动？',
+      success: async (res) => {
         if (res.confirm) {
-          cancelActivity(activityId)
-          loadData()
-          Taro.showToast({ title: '已取消活动', icon: 'success' })
+          try {
+            await cancelActivity(activityId, classId!)
+            Taro.showToast({ title: '已取消', icon: 'success' })
+            loadActivities()
+          } catch (e: unknown) {
+            Taro.showToast({ title: (e as Error)?.message || '操作失败', icon: 'none' })
+          }
         }
-      },
+      }
     })
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'ongoing':
-        return <Badge className="bg-emerald-100 text-emerald-600 text-xs">进行中</Badge>
-      case 'closed':
-        return <Badge className="bg-orange-100 text-orange-600 text-xs">已截止</Badge>
-      case 'ended':
-        return <Badge className="bg-gray-100 text-gray-500 text-xs">已结束</Badge>
-      default:
-        return null
+  const handleCancelSignup = async (activityId: string) => {
+    try {
+      await cancelActivity(activityId, classId!, 'signup')
+      Taro.showToast({ title: '已取消报名', icon: 'success' })
+      loadActivities()
+    } catch (e: unknown) {
+      Taro.showToast({ title: (e as Error)?.message || '操作失败', icon: 'none' })
     }
   }
 
-  const ongoingActivities = activities.filter((a) => a.status === 'ongoing')
-  const otherActivities = activities.filter((a) => a.status !== 'ongoing')
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return ''
+    const d = new Date(dateStr)
+    return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  }
+
+  // teacher 角色隐藏整个班费模块提示
+  if (isTeacher) {
+    return (
+      <View className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <Card className="w-full max-w-sm">
+          <CardContent className="p-8 text-center">
+            <Users size={48} className="mx-auto mb-4" color="#9CA3AF" />
+            <Text className="block text-gray-500">任课老师无需管理活动</Text>
+          </CardContent>
+        </Card>
+      </View>
+    )
+  }
 
   return (
-    <View className="min-h-full bg-orange-50 pb-6">
-      <View className="px-4 pt-4 space-y-3">
-        {/* 创建按钮 */}
-        {isCommittee && (
-          <Button
-            className="w-full bg-orange-500 text-white"
-            onClick={() => setShowCreateDialog(true)}
-          >
-            <Plus size={16} color="#fff" />
-            <Text className="ml-1 text-sm">创建活动</Text>
-          </Button>
-        )}
-
-        <Tabs defaultValue="ongoing" className="w-full">
-          <TabsList className="w-full grid grid-cols-2">
-            <TabsTrigger value="ongoing">进行中</TabsTrigger>
-            <TabsTrigger value="other">已截止/已结束</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="ongoing">
-            {ongoingActivities.length > 0 ? (
-              <View className="space-y-3 mt-3">
-                {ongoingActivities.map((activity) => {
-                  const progress = (activity.registrations.length / activity.maxCount) * 100
-                  return (
-                    <Card key={activity.id} className="shadow-sm border-0">
-                      <CardContent className="p-4">
-                        <View className="flex items-start justify-between mb-2">
-                          <Text className="block text-base font-semibold text-gray-800 flex-1">
-                            {activity.name}
-                          </Text>
-                          {getStatusBadge(activity.status)}
-                        </View>
-                        <View className="space-y-1 mb-3">
-                          <View className="flex items-center gap-1">
-                            <Clock size={13} color="#6B7280" />
-                            <Text className="text-xs text-gray-500">{activity.time}</Text>
-                          </View>
-                          <View className="flex items-center gap-1">
-                            <MapPin size={13} color="#6B7280" />
-                            <Text className="text-xs text-gray-500">{activity.location}</Text>
-                          </View>
-                          <View className="flex items-center gap-1">
-                            <Users size={13} color="#6B7280" />
-                            <Text className="text-xs text-gray-500">
-                              已报名 {activity.registrations.length}/{activity.maxCount} 人
-                            </Text>
-                          </View>
-                        </View>
-                        {/* 进度条 */}
-                        <View className="mb-3">
-                          <Progress value={progress} className="h-2" />
-                        </View>
-                        {activity.remark && (
-                          <Text className="block text-xs text-gray-400 mb-3">
-                            备注：{activity.remark}
-                          </Text>
-                        )}
-                        <View className="flex items-center gap-2">
-                          <Button
-                            size="sm"
-                            className="bg-blue-500 text-white flex-1"
-                            onClick={() => {
-                              setSelectedActivity(activity)
-                              setShowRegisterDialog(true)
-                            }}
-                          >
-                            <UserPlus size={14} color="#fff" />
-                            <Text className="ml-1 text-xs">报名</Text>
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex-1"
-                            onClick={() => {
-                              setSelectedActivity(activity)
-                              setShowListDialog(true)
-                            }}
-                          >
-                            <List size={14} color="#6B7280" />
-                            <Text className="ml-1 text-xs">名单</Text>
-                          </Button>
-                          {isCommittee && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleCancel(activity.id)}
-                            >
-                              <CircleX size={14} color="#EF4444" />
-                            </Button>
-                          )}
-                        </View>
-                      </CardContent>
-                    </Card>
-                  )
-                })}
-              </View>
-            ) : (
-              <View className="flex flex-col items-center py-16">
-                <Calendar size={48} color="#D1D5DB" />
-                <Text className="text-sm text-gray-400 mt-3">暂无进行中的活动</Text>
-              </View>
-            )}
-          </TabsContent>
-
-          <TabsContent value="other">
-            {otherActivities.length > 0 ? (
-              <View className="space-y-3 mt-3">
-                {otherActivities.map((activity) => (
-                  <Card key={activity.id} className="shadow-sm border-0 opacity-75">
-                    <CardContent className="p-4">
-                      <View className="flex items-start justify-between mb-2">
-                        <Text className="block text-base font-semibold text-gray-800 flex-1">
-                          {activity.name}
-                        </Text>
-                        {getStatusBadge(activity.status)}
-                      </View>
-                      <View className="space-y-1">
-                        <View className="flex items-center gap-1">
-                          <Clock size={13} color="#6B7280" />
-                          <Text className="text-xs text-gray-500">{activity.time}</Text>
-                        </View>
-                        <View className="flex items-center gap-1">
-                          <Users size={13} color="#6B7280" />
-                          <Text className="text-xs text-gray-500">
-                            共 {activity.registrations.length} 人报名
-                          </Text>
-                        </View>
-                      </View>
-                    </CardContent>
-                  </Card>
-                ))}
-              </View>
-            ) : (
-              <View className="flex flex-col items-center py-16">
-                <Calendar size={48} color="#D1D5DB" />
-                <Text className="text-sm text-gray-400 mt-3">暂无已结束的活动</Text>
-              </View>
-            )}
-          </TabsContent>
-        </Tabs>
+    <View className="min-h-screen bg-gray-50 pb-6">
+      {/* Header */}
+      <View className="bg-gradient-to-r from-orange-500 to-orange-400 px-4 pt-8 pb-6">
+        <View className="flex items-center justify-between">
+          <View>
+            <Text className="block text-white text-xl font-bold">活动报名</Text>
+            <Text className="block text-white text-opacity-80 text-sm mt-1">{activities.filter(a => a.status === 'open').length} 个活动进行中</Text>
+          </View>
+          {isManager && (
+            <Button size="sm" className="bg-white bg-opacity-20 text-white border-white border-opacity-30" onClick={() => setShowCreate(true)}>
+              <Plus size={16} className="mr-1" color="#fff" />
+              <Text className="text-sm text-white">发布</Text>
+            </Button>
+          )}
+        </View>
       </View>
 
+      <ScrollView scrollY className="h-[calc(100vh-280px)] px-4 -mt-2">
+        {loading ? (
+          <View className="py-12 text-center">
+            <Text className="block text-gray-400">加载中...</Text>
+          </View>
+        ) : activities.length === 0 ? (
+          <View className="py-12 text-center">
+            <Calendar size={48} className="mx-auto mb-4" color="#D1D5DB" />
+            <Text className="block text-gray-400">暂无活动</Text>
+            {isManager && <Text className="block text-gray-400 text-sm mt-1">点击右上角发布新活动</Text>}
+          </View>
+        ) : (
+          <View className="space-y-3">
+            {activities.map(activity => {
+              const st = STATUS_MAP[activity.status] || STATUS_MAP.open
+              const progress = activity.max_participants > 0
+                ? Math.min(100, (activity.current_count / activity.max_participants) * 100) : 0
+
+              return (
+                <Card key={activity._id} className="overflow-hidden">
+                  <CardContent className="p-4">
+                    <View className="flex items-start justify-between mb-2">
+                      <Text className="block text-base font-bold text-gray-800 flex-1 mr-2">{activity.title}</Text>
+                      <View className={`px-2 py-1 rounded-full ${st.bg}`}>
+                        <Text className={`text-xs ${st.color}`}>{st.label}</Text>
+                      </View>
+                    </View>
+
+                    {activity.description ? (
+                      <Text className="block text-sm text-gray-500 mb-3">{activity.description}</Text>
+                    ) : null}
+
+                    <View className="space-y-2 mb-3">
+                      {activity.start_time ? (
+                        <View className="flex items-center text-xs text-gray-500">
+                          <Clock size={14} className="mr-2" color="#9CA3AF" />
+                          <Text className="text-gray-500">{formatDate(activity.start_time)}</Text>
+                        </View>
+                      ) : null}
+                      {activity.location ? (
+                        <View className="flex items-center text-xs text-gray-500">
+                          <MapPin size={14} className="mr-2" color="#9CA3AF" />
+                          <Text className="text-gray-500">{activity.location}</Text>
+                        </View>
+                      ) : null}
+                    </View>
+
+                    {activity.max_participants > 0 && (
+                      <View className="mb-3">
+                        <View className="flex justify-between mb-1">
+                          <Text className="text-xs text-gray-500">报名进度</Text>
+                          <Text className="text-xs font-medium text-orange-600">
+                            {activity.current_count}/{activity.max_participants}
+                          </Text>
+                        </View>
+                        <Progress value={progress} className="h-2" />
+                      </View>
+                    )}
+
+                    <View className="flex gap-2">
+                      {activity.status === 'open' && !activity.is_signed_up && (
+                        <Button size="sm" className="flex-1 bg-orange-500 text-white"
+                          onClick={() => { setSelectedActivity(activity); setShowSignup(true) }}
+                        >
+                          <Text className="text-sm text-white">我要报名</Text>
+                        </Button>
+                      )}
+                      {activity.is_signed_up && activity.status === 'open' && (
+                        <Button size="sm" variant="outline" className="flex-1 border-gray-300"
+                          onClick={() => handleCancelSignup(activity._id)}
+                        >
+                          <X size={14} className="mr-1" color="#6B7280" />
+                          <Text className="text-sm text-gray-600">取消报名</Text>
+                        </Button>
+                      )}
+                      {activity.is_signed_up && (
+                        <Badge className="bg-green-50 text-green-600 border-green-200">
+                          <UserCheck size={12} className="mr-1" color="#16A34A" />
+                          <Text className="text-xs text-green-600">已报名</Text>
+                        </Badge>
+                      )}
+                      {isManager && activity.status === 'open' && (
+                        <Button size="sm" variant="outline" className="border-gray-300"
+                          onClick={() => handleViewSignups(activity)}
+                        >
+                          <Text className="text-sm text-gray-600">名单</Text>
+                          <ChevronRight size={14} className="ml-1" color="#6B7280" />
+                        </Button>
+                      )}
+                      {isManager && (activity.status === 'open' || activity.status === 'closed') && (
+                        <Button size="sm" variant="outline" className="border-red-200"
+                          onClick={() => handleCancelActivity(activity._id)}
+                        >
+                          <Text className="text-sm text-red-500">取消</Text>
+                        </Button>
+                      )}
+                    </View>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </View>
+        )}
+      </ScrollView>
+
       {/* 创建活动弹窗 */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-lg">
+      <Dialog open={showCreate} onOpenChange={setShowCreate}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>创建活动</DialogTitle>
-            <DialogDescription>创建班级活动，家长可在线报名</DialogDescription>
+            <DialogTitle><Text className="text-lg font-bold text-gray-800">发布新活动</Text></DialogTitle>
+            <DialogDescription><Text className="text-sm text-gray-500">填写活动信息，发布后家长可报名</Text></DialogDescription>
           </DialogHeader>
-          <ScrollArea className="max-h-96">
-            <View className="space-y-4 p-1">
-              <View>
-                <Label className="text-sm text-gray-700 mb-1 block">活动名称 *</Label>
-                <View className="bg-gray-50 rounded-xl px-3 py-2">
-                  <Input className="w-full bg-transparent" placeholder="如：秋季运动会志愿者" value={formName} onInput={(e) => setFormName(e.detail.value)} />
-                </View>
+          <View className="space-y-3 mt-2">
+            <View>
+              <Text className="block text-sm text-gray-600 mb-1">活动名称 *</Text>
+              <View className="bg-gray-50 rounded-xl px-4 py-3">
+                <Input className="w-full bg-transparent" placeholder="如：春季运动会志愿者招募"
+                  value={form.title} onInput={(e) => setForm({ ...form, title: e.detail.value })}
+                />
               </View>
-              <View>
-                <Label className="text-sm text-gray-700 mb-1 block">活动时间 *</Label>
-                <View className="bg-gray-50 rounded-xl px-3 py-2">
-                  <Input className="w-full bg-transparent" placeholder="如：2025-10-15 08:00-16:00" value={formTime} onInput={(e) => setFormTime(e.detail.value)} />
-                </View>
-              </View>
-              <View>
-                <Label className="text-sm text-gray-700 mb-1 block">活动地点</Label>
-                <View className="bg-gray-50 rounded-xl px-3 py-2">
-                  <Input className="w-full bg-transparent" placeholder="如：学校操场" value={formLocation} onInput={(e) => setFormLocation(e.detail.value)} />
-                </View>
-              </View>
-              <View>
-                <Label className="text-sm text-gray-700 mb-1 block">人数上限 *</Label>
-                <View className="bg-gray-50 rounded-xl px-3 py-2">
-                  <Input className="w-full bg-transparent" placeholder="如：5" type="number" value={formMaxCount} onInput={(e) => setFormMaxCount(e.detail.value)} />
-                </View>
-              </View>
-              <View>
-                <Label className="text-sm text-gray-700 mb-1 block">报名截止时间</Label>
-                <View className="bg-gray-50 rounded-xl px-3 py-2">
-                  <Input className="w-full bg-transparent" placeholder="如：2025-10-10 18:00" value={formDeadline} onInput={(e) => setFormDeadline(e.detail.value)} />
-                </View>
-              </View>
-              <View>
-                <Label className="text-sm text-gray-700 mb-1 block">备注</Label>
-                <View className="bg-gray-50 rounded-xl p-3">
-                  <Textarea style={{ width: '100%', minHeight: '80px', backgroundColor: 'transparent' }} placeholder="活动备注说明" value={formRemark} onInput={(e) => setFormRemark(e.detail.value)} maxlength={200} />
-                </View>
-              </View>
-              <Button className="w-full bg-orange-500 text-white" onClick={handleCreate}>
-                创建
-              </Button>
             </View>
-          </ScrollArea>
+            <View>
+              <Text className="block text-sm text-gray-600 mb-1">活动说明</Text>
+              <View className="bg-gray-50 rounded-2xl p-4">
+                <Textarea className="w-full bg-transparent" placeholder="活动详情..."
+                  style={{ width: '100%', minHeight: '60px', backgroundColor: 'transparent' }}
+                  value={form.description} onInput={(e) => setForm({ ...form, description: e.detail.value })}
+                />
+              </View>
+            </View>
+            <View className="grid grid-cols-2 gap-3">
+              <View>
+                <Text className="block text-sm text-gray-600 mb-1">开始时间</Text>
+                <View className="bg-gray-50 rounded-xl px-4 py-3">
+                  <Input className="w-full bg-transparent" placeholder="2024-10-01 09:00"
+                    value={form.start_time} onInput={(e) => setForm({ ...form, start_time: e.detail.value })}
+                  />
+                </View>
+              </View>
+              <View>
+                <Text className="block text-sm text-gray-600 mb-1">报名截止</Text>
+                <View className="bg-gray-50 rounded-xl px-4 py-3">
+                  <Input className="w-full bg-transparent" placeholder="2024-09-28 18:00"
+                    value={form.deadline} onInput={(e) => setForm({ ...form, deadline: e.detail.value })}
+                  />
+                </View>
+              </View>
+            </View>
+            <View>
+              <Text className="block text-sm text-gray-600 mb-1">活动地点</Text>
+              <View className="bg-gray-50 rounded-xl px-4 py-3">
+                <Input className="w-full bg-transparent" placeholder="如：学校操场"
+                  value={form.location} onInput={(e) => setForm({ ...form, location: e.detail.value })}
+                />
+              </View>
+            </View>
+            <View>
+              <Text className="block text-sm text-gray-600 mb-1">人数上限（0=不限）</Text>
+              <View className="bg-gray-50 rounded-xl px-4 py-3">
+                <Input className="w-full bg-transparent" type="number" placeholder="10"
+                  value={form.max_participants} onInput={(e) => setForm({ ...form, max_participants: e.detail.value })}
+                />
+              </View>
+            </View>
+            <Button className="w-full bg-orange-500 text-white mt-4" onClick={handleCreate}>
+              <Text className="text-white">发布活动</Text>
+            </Button>
+          </View>
         </DialogContent>
       </Dialog>
 
       {/* 报名弹窗 */}
-      <Dialog open={showRegisterDialog} onOpenChange={setShowRegisterDialog}>
-        <DialogContent className="max-w-lg">
+      <Dialog open={showSignup} onOpenChange={setShowSignup}>
+        <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>活动报名</DialogTitle>
-            <DialogDescription>{selectedActivity?.name || ''}</DialogDescription>
+            <DialogTitle><Text className="text-lg font-bold text-gray-800">活动报名</Text></DialogTitle>
+            <DialogDescription>
+              <Text className="text-sm text-gray-500">{selectedActivity?.title}</Text>
+            </DialogDescription>
           </DialogHeader>
-          <ScrollArea className="max-h-80">
-            <View className="space-y-4 p-1">
-              <View>
-                <Label className="text-sm text-gray-700 mb-1 block">学生姓名 *</Label>
-                <View className="bg-gray-50 rounded-xl px-3 py-2">
-                  <Input className="w-full bg-transparent" placeholder="请输入学生姓名" value={regStudent} onInput={(e) => setRegStudent(e.detail.value)} />
-                </View>
+          <View className="space-y-3 mt-2">
+            <View>
+              <Text className="block text-sm text-gray-600 mb-1">学生姓名 *</Text>
+              <View className="bg-gray-50 rounded-xl px-4 py-3">
+                <Input className="w-full bg-transparent" placeholder="请输入学生姓名"
+                  value={signupForm.student_name} onInput={(e) => setSignupForm({ ...signupForm, student_name: e.detail.value })}
+                />
               </View>
-              <View>
-                <Label className="text-sm text-gray-700 mb-1 block">家长联系方式</Label>
-                <View className="bg-gray-50 rounded-xl px-3 py-2">
-                  <Input className="w-full bg-transparent" placeholder="请输入手机号" type="number" value={regContact} onInput={(e) => setRegContact(e.detail.value)} />
-                </View>
-              </View>
-              <View>
-                <Label className="text-sm text-gray-700 mb-1 block">备注</Label>
-                <View className="bg-gray-50 rounded-xl p-3">
-                  <Textarea style={{ width: '100%', minHeight: '60px', backgroundColor: 'transparent' }} placeholder="如有特殊说明请填写" value={regRemark} onInput={(e) => setRegRemark(e.detail.value)} maxlength={200} />
-                </View>
-              </View>
-              <Button className="w-full bg-blue-500 text-white" onClick={handleRegister}>
-                提交报名
-              </Button>
             </View>
-          </ScrollArea>
+            <View>
+              <Text className="block text-sm text-gray-600 mb-1">联系电话</Text>
+              <View className="bg-gray-50 rounded-xl px-4 py-3">
+                <Input className="w-full bg-transparent" type="number" placeholder="请输入手机号"
+                  value={signupForm.contact} onInput={(e) => setSignupForm({ ...signupForm, contact: e.detail.value })}
+                />
+              </View>
+            </View>
+            <View>
+              <Text className="block text-sm text-gray-600 mb-1">备注</Text>
+              <View className="bg-gray-50 rounded-xl px-4 py-3">
+                <Input className="w-full bg-transparent" placeholder="如有特殊说明请填写"
+                  value={signupForm.note} onInput={(e) => setSignupForm({ ...signupForm, note: e.detail.value })}
+                />
+              </View>
+            </View>
+            <Button className="w-full bg-orange-500 text-white mt-4" onClick={handleSignup}>
+              <Text className="text-white">确认报名</Text>
+            </Button>
+          </View>
         </DialogContent>
       </Dialog>
 
       {/* 报名名单弹窗 */}
-      <Dialog open={showListDialog} onOpenChange={setShowListDialog}>
-        <DialogContent className="max-w-lg">
+      <Dialog open={showSignups} onOpenChange={setShowSignups}>
+        <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>报名名单</DialogTitle>
+            <DialogTitle><Text className="text-lg font-bold text-gray-800">报名名单</Text></DialogTitle>
             <DialogDescription>
-              {selectedActivity?.name || ''} - 共{selectedActivity?.registrations.length || 0}人
+              <Text className="text-sm text-gray-500">{selectedActivity?.title} · {signupList.length}人</Text>
             </DialogDescription>
           </DialogHeader>
-          <ScrollArea className="max-h-80">
-            <View className="space-y-2 p-1">
-              {selectedActivity?.registrations.length ? (
-                selectedActivity.registrations.map((reg, idx) => (
-                  <View key={reg.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                    <View className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-                      <Text className="text-xs font-semibold text-orange-600">{idx + 1}</Text>
-                    </View>
-                    <View className="flex-1">
-                      <Text className="block text-sm font-medium text-gray-800">{reg.studentName}</Text>
-                      <Text className="block text-xs text-gray-500">{reg.parentContact || '未填写联系方式'}</Text>
-                    </View>
-                    {reg.remark && (
-                      <Text className="text-xs text-gray-400">{reg.remark}</Text>
-                    )}
+          <ScrollView scrollY className="max-h-80 mt-2">
+            <View className="space-y-2">
+              {signupList.map((s, i) => (
+                <View key={s._id} className="flex items-center bg-gray-50 rounded-xl px-4 py-3">
+                  <Text className="block text-sm font-medium text-gray-800 w-6">{i + 1}.</Text>
+                  <View className="flex-1">
+                    <Text className="block text-sm font-medium text-gray-800">{s.student_name}</Text>
+                    {s.contact ? <Text className="block text-xs text-gray-500">{s.contact}</Text> : null}
                   </View>
-                ))
-              ) : (
-                <Text className="text-sm text-gray-400 text-center py-8 block">暂无报名</Text>
-              )}
+                  {s.note ? <Text className="text-xs text-orange-500 ml-2">{s.note}</Text> : null}
+                </View>
+              ))}
             </View>
-          </ScrollArea>
+          </ScrollView>
         </DialogContent>
       </Dialog>
     </View>
   )
 }
-
-export default ActivityPage

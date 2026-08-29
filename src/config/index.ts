@@ -13,6 +13,9 @@ export const CLOUD_FUNCTIONS = {
   CLASS_JOIN: 'classJoin',
   ROSTER_IMPORT: 'rosterImport',
   ANNOUNCEMENT: 'announcement',
+  ACTIVITY: 'activity',
+  FEE: 'fee',
+  DUTY: 'duty',
 } as const
 
 /** 数据库集合名称 */
@@ -26,5 +29,7 @@ export const COLLECTIONS = {
   ACTIVITIES: 'activities',
   ACTIVITY_SIGNUPS: 'activity_signups',
   FEE_RECORDS: 'fee_records',
+  FEE_COLLECTIONS: 'fee_collections',
+  FEE_PAYMENTS: 'fee_payments',
   DUTY_SCHEDULES: 'duty_schedules',
 } as const

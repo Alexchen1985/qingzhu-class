@@ -1,337 +1,252 @@
-import { useState, useCallback } from 'react'
-import { View, Text } from '@tarojs/components'
+/**
+ * 值日排班页面 - 云开发版
+ * 数据来源：duty 云函数
+ */
+import { useState, useCallback, useEffect } from 'react'
+import { View, Text, ScrollView } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import {
-  CalendarDays,
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  Sun,
-  User,
-} from 'lucide-react-taro'
-import { initStorage, getDuties, setWeekDuty, getProfile } from '@/store'
-import type { DutySchedule, DutyAssignment } from '@/store/types'
+import { Input } from '@/components/ui/input'
+import { ChevronLeft, ChevronRight, Star, Users, RotateCw } from 'lucide-react-taro'
+import { getDutyWeekList, batchSetDuty, autoRotateDuty, getMyDuty, type CloudDutySchedule } from '@/services/cloud'
+import { getCurrentClassId, getUserRole, getCurrentStudentName } from '@/store'
 
-const WEEKDAYS = ['周一', '周二', '周三', '周四', '周五']
+const WEEKDAYS = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
 
-function getMonday(date: Date): string {
+function getMonday(date: Date): Date {
   const d = new Date(date)
   const day = d.getDay()
   const diff = d.getDate() - day + (day === 0 ? -6 : 1)
   d.setDate(diff)
-  return d.toISOString().split('T')[0]
+  d.setHours(0, 0, 0, 0)
+  return d
 }
 
-function addWeeks(monday: string, weeks: number): string {
-  const d = new Date(monday)
-  d.setDate(d.getDate() + weeks * 7)
-  return d.toISOString().split('T')[0]
+function formatDate(date: Date): string {
+  return date.toISOString().slice(0, 10)
 }
 
-function getWeekDates(monday: string): string[] {
-  const dates: string[] = []
-  const d = new Date(monday)
-  for (let i = 0; i < 5; i++) {
-    const day = new Date(d)
-    day.setDate(d.getDate() + i)
-    dates.push(day.toISOString().split('T')[0])
-  }
-  return dates
-}
+export default function DutyPage() {
+  const [weekStart, setWeekStart] = useState<Date>(getMonday(new Date()))
+  const [dates, setDates] = useState<string[]>([])
+  const [schedule, setSchedule] = useState<Record<string, CloudDutySchedule[]>>({})
+  const [loading, setLoading] = useState(true)
+  const [showSet, setShowSet] = useState(false)
+  const [setForm, setSetForm] = useState<Record<string, string>>({})
+  const [myDutyDates, setMyDutyDates] = useState<Set<string>>(new Set())
 
-function formatDateShort(dateStr: string): string {
-  const d = new Date(dateStr)
-  return `${d.getMonth() + 1}/${d.getDate()}`
-}
+  const classId = getCurrentClassId()
+  const role = getUserRole()
+  const studentName = getCurrentStudentName()
+  const isManager = role === 'head_teacher' || role === 'committee'
 
-function isToday(dateStr: string): boolean {
-  const today = new Date().toISOString().split('T')[0]
-  return dateStr === today
-}
+  const loadWeekData = useCallback(async () => {
+    if (!classId) return
+    try {
+      const weekStartStr = formatDate(weekStart)
+      const result = await getDutyWeekList(classId, weekStartStr)
+      setDates(result.dates)
+      setSchedule(result.schedule)
 
-const DutyPage = () => {
-  const [duties, setDuties] = useState<DutySchedule[]>([])
-  const [currentMonday, setCurrentMonday] = useState(getMonday(new Date()))
-  const [showSetDialog, setShowSetDialog] = useState(false)
-  const [isCommittee, setIsCommittee] = useState(false)
-  const [editStudents, setEditStudents] = useState<string[]>(['', '', '', '', ''])
-
-  const loadData = useCallback(() => {
-    initStorage()
-    setDuties(getDuties())
-    const profile = getProfile()
-    setIsCommittee(profile.role === 'committee')
-  }, [])
-
-  useDidShow(() => {
-    loadData()
-  })
-
-  const currentWeek = duties.find((d) => d.weekStart === currentMonday)
-  const weekDates = getWeekDates(currentMonday)
-
-  const goToPrevWeek = () => {
-    setCurrentMonday(addWeeks(currentMonday, -1))
-  }
-
-  const goToNextWeek = () => {
-    setCurrentMonday(addWeeks(currentMonday, 1))
-  }
-
-  const goToToday = () => {
-    setCurrentMonday(getMonday(new Date()))
-  }
-
-  const openSetDialog = () => {
-    if (currentWeek) {
-      const students = currentWeek.assignments.map((a) => a.students.join('、'))
-      setEditStudents([...students, ...Array(5 - students.length).fill('')])
-    } else {
-      setEditStudents(['', '', '', '', ''])
+      // 加载我的值日
+      if (studentName) {
+        const myDuties = await getMyDuty(classId, studentName)
+        const mySet = new Set(myDuties.map(d => d.duty_date))
+        setMyDutyDates(mySet)
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
     }
-    setShowSetDialog(true)
+  }, [classId, weekStart, studentName])
+
+  useDidShow(() => { loadWeekData() })
+  useEffect(() => { loadWeekData() }, [loadWeekData])
+
+  const prevWeek = () => {
+    const d = new Date(weekStart)
+    d.setDate(d.getDate() - 7)
+    setWeekStart(d)
   }
 
-  const handleSave = () => {
-    const assignments: DutyAssignment[] = weekDates.map((date, i) => ({
-      date,
-      students: editStudents[i]
-        ? editStudents[i]
-            .split(/[、，,]/)
-            .map((s) => s.trim())
-            .filter(Boolean)
-        : [],
-    }))
-    setWeekDuty(currentMonday, assignments)
-    setShowSetDialog(false)
-    loadData()
-    Taro.showToast({ title: '保存成功', icon: 'success' })
+  const nextWeek = () => {
+    const d = new Date(weekStart)
+    d.setDate(d.getDate() + 7)
+    setWeekStart(d)
   }
 
-  const getAssignmentForDate = (date: string): DutyAssignment | undefined => {
-    return currentWeek?.assignments.find((a) => a.date === date)
+  const goToday = () => {
+    setWeekStart(getMonday(new Date()))
   }
 
-  const isMyDuty = (students: string[]): boolean => {
-    const profile = getProfile()
-    return students.includes(profile.studentName)
+  const handleOpenSet = () => {
+    const form: Record<string, string> = {}
+    dates.forEach(date => {
+      const existing = schedule[date]?.[0]
+      form[date] = existing?.student_name || ''
+    })
+    setSetForm(form)
+    setShowSet(true)
   }
+
+  const handleBatchSet = async () => {
+    const schedules = dates
+      .filter(date => setForm[date]?.trim())
+      .map(date => ({ date, student_name: setForm[date].trim() }))
+    if (schedules.length === 0) {
+      Taro.showToast({ title: '请至少填写一天的值日生', icon: 'none' }); return
+    }
+    try {
+      await batchSetDuty(classId!, formatDate(weekStart), schedules)
+      Taro.showToast({ title: '排班成功', icon: 'success' })
+      setShowSet(false)
+      loadWeekData()
+    } catch (e: unknown) {
+      Taro.showToast({ title: (e as Error)?.message || '操作失败', icon: 'none' })
+    }
+  }
+
+  const handleAutoRotate = async () => {
+    try {
+      const result = await autoRotateDuty(classId!, formatDate(weekStart))
+      if (result.schedules.length > 0) {
+        Taro.showToast({ title: '自动排班成功', icon: 'success' })
+        loadWeekData()
+      } else {
+        Taro.showToast({ title: '名单为空，请先导入家长名单', icon: 'none' })
+      }
+    } catch (e: unknown) {
+      Taro.showToast({ title: (e as Error)?.message || '操作失败', icon: 'none' })
+    }
+  }
+
+  const weekLabel = `${weekStart.getMonth() + 1}月${weekStart.getDate()}日`
 
   return (
-    <View className="min-h-full bg-orange-50 pb-6">
-      <View className="px-4 pt-4 space-y-4">
-        {/* 周导航 */}
-        <Card className="shadow-sm border-0">
-          <CardContent className="p-4">
-            <View className="flex items-center justify-between mb-4">
-              <Button variant="ghost" size="sm" onClick={goToPrevWeek}>
-                <ChevronLeft size={18} color="#6B7280" />
+    <View className="min-h-screen bg-gray-50 pb-6">
+      {/* Header */}
+      <View className="bg-gradient-to-r from-orange-500 to-orange-400 px-4 pt-8 pb-6">
+        <View className="flex items-center justify-between mb-4">
+          <View>
+            <Text className="block text-white text-xl font-bold">值日排班</Text>
+            <Text className="block text-white text-opacity-80 text-sm mt-1">{weekLabel} 所在周</Text>
+          </View>
+          {isManager && (
+            <View className="flex gap-2">
+              <Button size="sm" className="bg-white bg-opacity-20 text-white border-white border-opacity-30" onClick={handleAutoRotate}>
+                <RotateCw size={14} className="mr-1" color="#fff" />
+                <Text className="text-sm text-white">轮换</Text>
               </Button>
-              <View className="flex items-center gap-2">
-                <CalendarDays size={16} color="#F97316" />
-                <Text className="text-sm font-medium text-gray-800">
-                  {currentMonday} 周
-                </Text>
-              </View>
-              <View className="flex items-center gap-1">
-                <Button variant="ghost" size="sm" onClick={goToToday}>
-                  <Text className="text-xs text-orange-500">今天</Text>
-                </Button>
-                <Button variant="ghost" size="sm" onClick={goToNextWeek}>
-                  <ChevronRight size={18} color="#6B7280" />
-                </Button>
-              </View>
+              <Button size="sm" className="bg-white bg-opacity-20 text-white border-white border-opacity-30" onClick={handleOpenSet}>
+                <Text className="text-sm text-white">设置</Text>
+              </Button>
             </View>
+          )}
+        </View>
 
-            {/* 周日历 */}
-            <View className="grid grid-cols-5 gap-2">
-              {weekDates.map((date, i) => {
-                const assignment = getAssignmentForDate(date)
-                const students = assignment?.students || []
-                const today = isToday(date)
-                const myDuty = isMyDuty(students)
+        {/* Week Navigation */}
+        <View className="flex items-center justify-between">
+          <Button variant="ghost" size="sm" className="text-white p-2" onClick={prevWeek}>
+            <ChevronLeft size={20} color="#fff" />
+          </Button>
+          <Button variant="ghost" size="sm" className="text-white text-sm" onClick={goToday}>
+            <Text className="text-white text-sm">今天</Text>
+          </Button>
+          <Button variant="ghost" size="sm" className="text-white p-2" onClick={nextWeek}>
+            <ChevronRight size={20} color="#fff" />
+          </Button>
+        </View>
+      </View>
 
-                return (
-                  <View
-                    key={date}
-                    className={`rounded-xl p-2 text-center ${
-                      today
-                        ? 'bg-orange-500'
-                        : myDuty
-                          ? 'bg-orange-50'
-                          : 'bg-gray-50'
-                    }`}
-                  >
-                    <Text
-                      className={`block text-xs mb-1 ${
-                        today ? 'text-white' : 'text-gray-500'
+      <ScrollView scrollY className="h-[calc(100vh-280px)] px-4 -mt-2">
+        {loading ? (
+          <View className="py-12 text-center"><Text className="block text-gray-400">加载中...</Text></View>
+        ) : (
+          <View className="space-y-2">
+            {dates.map((date, index) => {
+              const weekday = WEEKDAYS[index]
+              const daySchedule = schedule[date] || []
+              const isMyDuty = myDutyDates.has(date)
+              const d = new Date(date)
+              const dayNum = d.getDate()
+              const isToday = date === formatDate(new Date())
+
+              return (
+                <Card key={date} className={`overflow-hidden ${isMyDuty ? 'ring-2 ring-orange-400' : ''}`}>
+                  <CardContent className="p-4">
+                    <View className="flex items-center">
+                      <View className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center mr-3 ${
+                        isToday ? 'bg-orange-500' : isMyDuty ? 'bg-orange-50' : 'bg-gray-100'
                       }`}
-                    >
-                      {WEEKDAYS[i]}
-                    </Text>
-                    <Text
-                      className={`block text-sm font-medium mb-1 ${
-                        today ? 'text-white' : 'text-gray-800'
-                      }`}
-                    >
-                      {formatDateShort(date)}
-                    </Text>
-                    {students.length > 0 ? (
-                      <View className="space-y-1">
-                        {students.map((s) => (
-                          <Text
-                            key={s}
-                            className={`block text-xs truncate ${
-                              today ? 'text-orange-100' : 'text-gray-600'
-                            }`}
-                          >
-                            {s}
-                          </Text>
-                        ))}
-                      </View>
-                    ) : (
-                      <Text
-                        className={`block text-xs ${
-                          today ? 'text-orange-200' : 'text-gray-300'
-                        }`}
                       >
-                        未排
-                      </Text>
-                    )}
-                    {myDuty && !today && (
-                      <View className="mt-1">
-                        <Badge className="bg-orange-100 text-orange-600 text-xs scale-75">
-                          我的
-                        </Badge>
+                        <Text className={`text-xs ${isToday ? 'text-white text-opacity-80' : 'text-gray-400'}`}>{weekday}</Text>
+                        <Text className={`text-lg font-bold ${isToday ? 'text-white' : isMyDuty ? 'text-orange-600' : 'text-gray-700'}`}>{dayNum}</Text>
                       </View>
-                    )}
+                      <View className="flex-1">
+                        {daySchedule.length > 0 ? (
+                          <View>
+                            <View className="flex items-center">
+                              <Users size={14} className="mr-2" color="#F97316" />
+                              <Text className="text-sm font-medium text-gray-800">
+                                {daySchedule.map(s => s.student_name).join('、')}
+                              </Text>
+                              {isMyDuty && (
+                                <View className="ml-2 flex items-center bg-orange-50 px-2 py-1 rounded-full">
+                                  <Star size={12} className="mr-1" color="#F97316" />
+                                  <Text className="text-xs text-orange-600">我的值日</Text>
+                                </View>
+                              )}
+                            </View>
+                          </View>
+                        ) : (
+                          <Text className="text-sm text-gray-400">未安排</Text>
+                        )}
+                      </View>
+                    </View>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </View>
+        )}
+      </ScrollView>
+
+      {/* 设置排班弹窗 */}
+      <Dialog open={showSet} onOpenChange={setShowSet}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle><Text className="text-lg font-bold text-gray-800">设置本周排班</Text></DialogTitle>
+            <DialogDescription><Text className="text-sm text-gray-500">{weekLabel} 所在周</Text></DialogDescription>
+          </DialogHeader>
+          <ScrollView scrollY className="max-h-80 mt-2">
+            <View className="space-y-3">
+              {dates.map((date, index) => {
+                const d = new Date(date)
+                return (
+                  <View key={date} className="flex items-center gap-3">
+                    <View className="w-16 text-center">
+                      <Text className="block text-sm font-medium text-gray-700">{WEEKDAYS[index]}</Text>
+                      <Text className="block text-xs text-gray-400">{d.getMonth() + 1}/{d.getDate()}</Text>
+                    </View>
+                    <View className="flex-1 bg-gray-50 rounded-xl px-4 py-2">
+                      <Input className="w-full bg-transparent" placeholder="值日学生姓名"
+                        value={setForm[date] || ''}
+                        onInput={(e) => setSetForm({ ...setForm, [date]: e.detail.value })}
+                      />
+                    </View>
                   </View>
                 )
               })}
             </View>
-          </CardContent>
-        </Card>
-
-        {/* 设置排班按钮 */}
-        {isCommittee && (
-          <Button
-            className="w-full bg-orange-500 text-white"
-            onClick={openSetDialog}
-          >
-            <Plus size={16} color="#fff" />
-            <Text className="ml-1 text-sm">设置本周排班</Text>
+          </ScrollView>
+          <Button className="w-full bg-orange-500 text-white mt-4" onClick={handleBatchSet}>
+            <Text className="text-white">保存排班</Text>
           </Button>
-        )}
-
-        {/* 值日详情列表 */}
-        <Text className="block text-base font-semibold text-gray-800">
-          本周值日详情
-        </Text>
-        <View className="space-y-2">
-          {weekDates.map((date, i) => {
-            const assignment = getAssignmentForDate(date)
-            const students = assignment?.students || []
-            const today = isToday(date)
-
-            return (
-              <Card key={date} className={`shadow-sm border-0 ${today ? 'ring-1 ring-orange-300' : ''}`}>
-                <CardContent className="p-3">
-                  <View className="flex items-center gap-3">
-                    <View
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                        today ? 'bg-orange-500' : 'bg-orange-50'
-                      }`}
-                    >
-                      {today ? (
-                        <Sun size={18} color="#fff" />
-                      ) : (
-                        <CalendarDays size={18} color="#F97316" />
-                      )}
-                    </View>
-                    <View className="flex-1">
-                      <View className="flex items-center gap-2">
-                        <Text className="text-sm font-medium text-gray-800">
-                          {WEEKDAYS[i]} {formatDateShort(date)}
-                        </Text>
-                        {today && (
-                          <Badge className="bg-orange-500 text-white text-xs">
-                            今天
-                          </Badge>
-                        )}
-                      </View>
-                      {students.length > 0 ? (
-                        <View className="flex items-center gap-1 mt-1 flex-wrap">
-                          {students.map((s) => (
-                            <View
-                              key={s}
-                              className="flex items-center gap-1 bg-gray-50 rounded-lg px-2 py-1"
-                            >
-                              <User size={10} color="#6B7280" />
-                              <Text className="text-xs text-gray-600">{s}</Text>
-                            </View>
-                          ))}
-                        </View>
-                      ) : (
-                        <Text className="text-xs text-gray-400">暂未安排</Text>
-                      )}
-                    </View>
-                  </View>
-                </CardContent>
-              </Card>
-            )
-          })}
-        </View>
-      </View>
-
-      {/* 设置排班弹窗 */}
-      <Dialog open={showSetDialog} onOpenChange={setShowSetDialog}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>设置排班</DialogTitle>
-            <DialogDescription>
-              {currentMonday} 周，多人用顿号分隔
-            </DialogDescription>
-          </DialogHeader>
-          <ScrollArea className="max-h-80">
-            <View className="space-y-3 p-1">
-              {weekDates.map((date, i) => (
-                <View key={date}>
-                  <Label className="text-sm text-gray-700 mb-1 block">
-                    {WEEKDAYS[i]} ({formatDateShort(date)})
-                  </Label>
-                  <View className="bg-gray-50 rounded-xl px-3 py-2">
-                    <Input
-                      className="w-full bg-transparent"
-                      placeholder="如：张小明、李小红"
-                      value={editStudents[i]}
-                      onInput={(e) => {
-                        const newStudents = [...editStudents]
-                        newStudents[i] = e.detail.value
-                        setEditStudents(newStudents)
-                      }}
-                    />
-                  </View>
-                </View>
-              ))}
-              <Button
-                className="w-full bg-orange-500 text-white"
-                onClick={handleSave}
-              >
-                保存排班
-              </Button>
-            </View>
-          </ScrollArea>
         </DialogContent>
       </Dialog>
     </View>
   )
 }
-
-export default DutyPage

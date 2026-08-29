@@ -1,0 +1,10 @@
+{
+  "name": "duty",
+  "version": "1.0.0",
+  "description": "值日排班云函数",
+  "main": "index.js",
+  "runtime": "nodejs16",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
