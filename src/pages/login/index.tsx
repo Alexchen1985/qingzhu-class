@@ -1,21 +1,37 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
-import Taro from '@tarojs/taro'
+import Taro, { useDidShow } from '@tarojs/taro'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { GraduationCap, Phone } from 'lucide-react-taro'
 import { login } from '@/services/cloud'
-import { setUserRole, setCurrentClassId, setCurrentStudentName, updateProfile } from '@/store'
+import { setUserRole, setCurrentClassId, setCurrentStudentName, updateProfile, getCurrentClassId } from '@/store'
 import type { LoginResult, CurrentClass } from '@/services/cloud-types'
 
 const STORAGE_KEY_LOGIN = 'app_login_result'
 const STORAGE_KEY_CURRENT_CLASS = 'app_current_class'
+const STORAGE_KEY_PHONE = 'app_login_phone'
 
 const LoginPage = () => {
   const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // 页面加载时检查是否已登录，并记住手机号
+  useDidShow(() => {
+    // 记住上次登录的手机号
+    const savedPhone = Taro.getStorageSync(STORAGE_KEY_PHONE)
+    if (savedPhone) {
+      setPhone(savedPhone)
+    }
+
+    // 如果已登录，直接跳转到首页
+    const classId = getCurrentClassId()
+    if (classId) {
+      Taro.switchTab({ url: '/pages/index/index' })
+    }
+  })
 
   const handleLogin = async () => {
     if (!phone.trim() || phone.length !== 11) {
@@ -29,6 +45,8 @@ const LoginPage = () => {
 
       // 保存到本地缓存
       Taro.setStorageSync(STORAGE_KEY_LOGIN, result)
+      // 记住手机号
+      Taro.setStorageSync(STORAGE_KEY_PHONE, phone.trim())
 
       if (result.classes.length > 0) {
         const first = result.classes[0]
