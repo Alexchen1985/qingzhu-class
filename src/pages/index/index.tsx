@@ -16,49 +16,63 @@ import {
   GraduationCap,
 } from 'lucide-react-taro'
 import {
-  initStorage,
-  getNotices,
-  getActivities,
-  getFinanceSummary,
-  getProfile,
-  getRoleLabel,
-} from '@/store'
-import type { Notice, Activity } from '@/store/types'
+  getAnnouncementList,
+  getFeeRecordList,
+  type CloudAnnouncement,
+} from '@/services/cloud'
+import { getCurrentClassId, getUserRole } from '@/store'
 
 const IndexPage = () => {
-  const [notices, setNotices] = useState<Notice[]>([])
-  const [activities, setActivities] = useState<Activity[]>([])
+  const [announcements, setAnnouncements] = useState<CloudAnnouncement[]>([])
   const [balance, setBalance] = useState(0)
   const [studentName, setStudentName] = useState('')
   const [className, setClassName] = useState('')
   const [role, setRole] = useState('')
+  const [loading, setLoading] = useState(true)
 
-  const loadData = useCallback(() => {
-    initStorage()
-    const allNotices = getNotices()
-    setNotices(allNotices.slice(0, 3))
-    const allActivities = getActivities().filter((a) => a.status === 'ongoing')
-    setActivities(allActivities.slice(0, 2))
-    const summary = getFinanceSummary()
-    setBalance(summary.balance)
-    const profile = getProfile()
-    setStudentName(profile.studentName)
-    setClassName(profile.className || '青竹班')
-    setRole(getRoleLabel(profile.role) || '家长')
+  const loadData = useCallback(async () => {
+    const classId = getCurrentClassId()
+    if (!classId) {
+      setLoading(false)
+      return
+    }
+
+    try {
+      setLoading(true)
+      
+      // 获取公告列表
+      const announcementResult = await getAnnouncementList(classId)
+      setAnnouncements(announcementResult.announcements || [])
+      
+      // 获取班费统计
+      const feeResult = await getFeeRecordList(classId)
+      const totalIncome = feeResult.total_income || 0
+      const totalExpense = feeResult.total_expense || 0
+      setBalance(totalIncome - totalExpense)
+      
+      // 获取用户信息
+      setRole(getUserRole() || '家长')
+      
+      // 从本地缓存获取班级和学生信息
+      const currentClass = Taro.getStorageSync('app_current_class')
+      if (currentClass) {
+        setClassName(currentClass.className || '')
+        setStudentName(currentClass.studentName || '')
+      }
+    } catch (err) {
+      console.error('加载数据失败:', err)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useDidShow(() => {
     loadData()
   })
 
-  const unreadCount = notices.filter(
-    (n) => n.needConfirm && !n.readBy.includes('current')
+  const unreadCount = announcements.filter(
+    (a) => a.need_confirm && !a.is_read && a.approve_status === 'approved'
   ).length
-
-  const pendingActivities = activities.filter((a) => {
-    const deadline = new Date(a.deadline).getTime()
-    return deadline > Date.now() && deadline - Date.now() < 3 * 24 * 60 * 60 * 1000
-  })
 
   const handleNavigate = (url: string) => {
     Taro.navigateTo({ url })
@@ -77,6 +91,14 @@ const IndexPage = () => {
     { icon: Users, label: '名单', color: '#8B5CF6', url: '/pages/roster/index' },
   ]
 
+  if (loading) {
+    return (
+      <View className="flex items-center justify-center min-h-screen bg-[#F0F8F4]">
+        <Text className="text-gray-500">加载中...</Text>
+      </View>
+    )
+  }
+
   return (
     <View className="min-h-full bg-[#F0F8F4] pb-6">
       {/* 顶部班级信息卡片 */}
@@ -85,7 +107,7 @@ const IndexPage = () => {
           <View className="flex-1">
             <View className="flex items-center gap-2 mb-2">
               <GraduationCap size={28} color="#fff" />
-              <Text className="block text-2xl font-bold text-white">{className}</Text>
+              <Text className="block text-2xl font-bold text-white">{className || '未加入班级'}</Text>
             </View>
             <Text className="block text-base text-white opacity-90">
               {studentName ? `${studentName} 的家长` : '欢迎'} · {role}
@@ -96,7 +118,7 @@ const IndexPage = () => {
           </View>
         </View>
 
-        {/* 三大色块 */}
+        {/* 三大统计卡片 */}
         <View className="flex gap-3">
           {/* 公告概览 */}
           <View
@@ -122,7 +144,7 @@ const IndexPage = () => {
               <Text className="block text-xs text-white opacity-80">活动</Text>
             </View>
             <Text className="block text-lg font-bold text-white">
-              {activities.length > 0 ? `${activities.length}个进行中` : '暂无活动'}
+              进行中
             </Text>
           </View>
 
@@ -172,7 +194,7 @@ const IndexPage = () => {
         </Card>
 
         {/* 待办事项区 */}
-        {(unreadCount > 0 || pendingActivities.length > 0) && (
+        {unreadCount > 0 && (
           <Card className="shadow-sm border-0">
             <CardContent className="p-4">
               <View className="flex items-center gap-2 mb-3">
@@ -182,42 +204,24 @@ const IndexPage = () => {
                 </Text>
               </View>
 
-              {unreadCount > 0 && (
-                <View
-                  className="flex items-center justify-between py-2 border-b border-gray-100"
-                  onClick={() => handleSwitchTab('/pages/notice/index')}
-                >
-                  <View className="flex items-center gap-2">
-                    <View className="w-2 h-2 rounded-full bg-red-500" />
-                    <Text className="block text-sm text-gray-700">
-                      {unreadCount} 条公告待确认
-                    </Text>
-                  </View>
-                  <ChevronRight size={16} color="#9CA3AF" />
+              <View
+                className="flex items-center justify-between py-2"
+                onClick={() => handleSwitchTab('/pages/notice/index')}
+              >
+                <View className="flex items-center gap-2">
+                  <View className="w-2 h-2 rounded-full bg-red-500" />
+                  <Text className="block text-sm text-gray-700">
+                    {unreadCount} 条公告待确认
+                  </Text>
                 </View>
-              )}
-
-              {pendingActivities.map((activity) => (
-                <View
-                  key={activity.id}
-                  className="flex items-center justify-between py-2"
-                  onClick={() => handleSwitchTab('/pages/activity/index')}
-                >
-                  <View className="flex items-center gap-2">
-                    <View className="w-2 h-2 rounded-full bg-amber-500" />
-                    <Text className="block text-sm text-gray-700">
-                      {activity.title} 即将截止
-                    </Text>
-                  </View>
-                  <ChevronRight size={16} color="#9CA3AF" />
-                </View>
-              ))}
+                <ChevronRight size={16} color="#9CA3AF" />
+              </View>
             </CardContent>
           </Card>
         )}
 
         {/* 最新公告 */}
-        {notices.length > 0 && (
+        {announcements.length > 0 && (
           <Card className="shadow-sm border-0">
             <CardContent className="p-4">
               <View className="flex items-center justify-between mb-3">
@@ -232,9 +236,9 @@ const IndexPage = () => {
                 </View>
               </View>
 
-              {notices.slice(0, 2).map((notice) => (
+              {announcements.slice(0, 2).map((notice) => (
                 <View
-                  key={notice.id}
+                  key={notice._id}
                   className="flex items-start gap-3 py-3 border-b border-gray-100 last:border-0"
                   onClick={() => handleSwitchTab('/pages/notice/index')}
                 >
@@ -254,12 +258,12 @@ const IndexPage = () => {
                       <Text className="block text-sm font-medium text-gray-800 flex-1 truncate">
                         {notice.title}
                       </Text>
-                      {notice.needConfirm && !notice.readBy.includes('current') && (
+                      {notice.need_confirm && !notice.is_read && (
                         <Badge className="bg-red-500 text-white text-xs">未读</Badge>
                       )}
                     </View>
                     <Text className="block text-xs text-gray-500">
-                      {notice.createdAt?.slice(0, 10) || ''}
+                      {notice.created_at?.slice(0, 10) || ''}
                     </Text>
                   </View>
                 </View>
@@ -269,7 +273,7 @@ const IndexPage = () => {
         )}
 
         {/* 空状态 */}
-        {notices.length === 0 && activities.length === 0 && (
+        {announcements.length === 0 && (
           <Card className="shadow-sm border-0">
             <CardContent className="p-8 flex flex-col items-center">
               <Bell size={48} color="#D1D5DB" />
