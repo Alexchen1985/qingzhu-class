@@ -38,6 +38,7 @@ import {
   type CloudAnnouncement,
   type AnnouncementStats,
 } from '@/services/cloud'
+import { getCurrentClassId, getUserRole } from '@/store'
 
 const TYPE_COLORS: Record<string, { bar: string; label: string; bg: string; text: string }> = {
   official: { bar: 'bg-red-500', label: '官方通知', bg: 'bg-red-50', text: 'text-red-700' },
@@ -47,7 +48,6 @@ const TYPE_COLORS: Record<string, { bar: string; label: string; bg: string; text
 
 const NoticePage = () => {
   const [announcements, setAnnouncements] = useState<CloudAnnouncement[]>([])
-  const [role, setRole] = useState('parent')
   const [loading, setLoading] = useState(true)
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [showDetailDialog, setShowDetailDialog] = useState(false)
@@ -63,8 +63,10 @@ const NoticePage = () => {
   const [showRejectDialog, setShowRejectDialog] = useState(false)
   const [rejectTarget, setRejectTarget] = useState<string | null>(null)
 
-  const classId = Taro.getStorageSync('current_class_id') || ''
+  const classId = getCurrentClassId()
   const isWeapp = Taro.getEnv() === Taro.ENV_TYPE.WEAPP
+
+  const [role, setRole] = useState(getUserRole())
 
   const isManager = role === 'head_teacher' || role === 'committee'
   const canPublish = role === 'head_teacher' || role === 'teacher' || role === 'committee'
@@ -83,7 +85,8 @@ const NoticePage = () => {
       setLoading(true)
       const result = await getAnnouncementList(classId)
       setAnnouncements(result.announcements || [])
-      setRole(result.role || 'parent')
+      // 使用本地存储的角色，而不是 API 返回的角色
+      setRole(getUserRole())
     } catch (err) {
       console.error('加载公告失败:', err)
     } finally {
