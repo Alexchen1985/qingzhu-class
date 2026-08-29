@@ -213,7 +213,7 @@ const OnboardingPage = () => {
         </Card>
 
         <Button
-          className="w-full bg-[#F0F8F4]0 text-white"
+          className="w-full bg-[#5EC4A0] text-white"
           onClick={() => Taro.switchTab({ url: '/pages/index/index' })}
         >
           进入首页
@@ -273,7 +273,7 @@ const OnboardingPage = () => {
                       <Input className="w-full bg-transparent" placeholder="如：父亲、母亲、祖父" value={relation} onInput={(e) => setRelation(e.detail.value)} />
                     </View>
                   </View>
-                  <Button className="w-full bg-[#F0F8F4]0 text-white" onClick={handleJoin} disabled={joining}>
+                  <Button className="w-full bg-[#5EC4A0] text-white" onClick={handleJoin} disabled={joining}>
                     <Users size={16} color="#fff" />
                     <Text className="ml-1 text-sm">{joining ? '加入中...' : '加入班级'}</Text>
                   </Button>
@@ -306,7 +306,7 @@ const OnboardingPage = () => {
                       <Input className="w-full bg-transparent" placeholder="如：三年级" value={grade} onInput={(e) => setGrade(e.detail.value)} />
                     </View>
                   </View>
-                  <Button className="w-full bg-[#F0F8F4]0 text-white" onClick={handleCreate} disabled={creating}>
+                  <Button className="w-full bg-[#5EC4A0] text-white" onClick={handleCreate} disabled={creating}>
                     <School size={16} color="#fff" />
                     <Text className="ml-1 text-sm">{creating ? '创建中...' : '创建班级'}</Text>
                   </Button>
