@@ -23,8 +23,8 @@ exports.main = async (event, context) => {
     }
 
     const role = memberRes.data[0].role
-    if (role !== 'head_teacher' && role !== 'committee') {
-      return { code: -1, message: '仅班主任和家委可导入名单', data: null }
+    if (role !== 'admin' && role !== 'head_teacher' && role !== 'committee') {
+      return { code: -1, message: '仅管理员、班主任和家委可导入名单', data: null }
     }
 
     // 解析文本
