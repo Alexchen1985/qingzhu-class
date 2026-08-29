@@ -258,7 +258,7 @@ export default function FinancePage() {
           <TabsContent value="collections" className="mt-3">
             <ScrollView scrollY className="h-[calc(100vh-420px)] px-4">
               <View className="mb-3">
-                <Button size="sm" className="bg-[#F0F8F4]0 text-white" onClick={() => setShowAddCollection(true)}>
+                <Button size="sm" className="bg-[#5EC4A0] text-white" onClick={() => setShowAddCollection(true)}>
                   <Plus size={14} className="mr-1" color="#fff" />
                   <Text className="text-sm text-white">新建收费项目</Text>
                 </Button>
@@ -357,7 +357,7 @@ export default function FinancePage() {
                 />
               </View>
             </View>
-            <Button className="w-full bg-[#F0F8F4]0 text-white mt-4" onClick={handleAddRecord}>
+            <Button className="w-full bg-[#5EC4A0] text-white mt-4" onClick={handleAddRecord}>
               <Text className="text-white">确认记录</Text>
             </Button>
           </View>
@@ -405,7 +405,7 @@ export default function FinancePage() {
                 />
               </View>
             </View>
-            <Button className="w-full bg-[#F0F8F4]0 text-white mt-4" onClick={handleCreateCollection}>
+            <Button className="w-full bg-[#5EC4A0] text-white mt-4" onClick={handleCreateCollection}>
               <Text className="text-white">创建</Text>
             </Button>
           </View>

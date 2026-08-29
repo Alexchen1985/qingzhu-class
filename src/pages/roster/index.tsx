@@ -168,7 +168,7 @@ export default function RosterPage() {
           <Text>批量导入</Text>
         </Button>
         <Button
-          className="flex-1 flex items-center justify-center gap-2 bg-[#F0F8F4]0"
+          className="flex-1 flex items-center justify-center gap-2 bg-[#5EC4A0]"
           onClick={() => setShowAdd(true)}
         >
           <Plus size={16} color="#fff" />
@@ -256,7 +256,7 @@ export default function RosterPage() {
                 关闭
               </Button>
               <Button
-                className="flex-1 bg-[#F0F8F4]0"
+                className="flex-1 bg-[#5EC4A0]"
                 disabled={importing}
                 onClick={handleImport}
               >
@@ -323,7 +323,7 @@ export default function RosterPage() {
               <Button variant="outline" className="flex-1" onClick={() => { setShowAdd(false); resetAddForm() }}>
                 取消
               </Button>
-              <Button className="flex-1 bg-[#F0F8F4]0" onClick={handleAdd}>
+              <Button className="flex-1 bg-[#5EC4A0]" onClick={handleAdd}>
                 添加
               </Button>
             </View>

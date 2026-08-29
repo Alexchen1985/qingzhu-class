@@ -179,7 +179,7 @@ export default function DutyPage() {
                   <CardContent className="p-4">
                     <View className="flex items-center">
                       <View className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center mr-3 ${
-                        isToday ? 'bg-[#F0F8F4]0' : isMyDuty ? 'bg-[#F0F8F4]' : 'bg-gray-100'
+                        isToday ? 'bg-[#5EC4A0]' : isMyDuty ? 'bg-[#F0F8F4]' : 'bg-gray-100'
                       }`}
                       >
                         <Text className={`text-xs ${isToday ? 'text-white text-opacity-80' : 'text-gray-400'}`}>{weekday}</Text>
@@ -242,7 +242,7 @@ export default function DutyPage() {
               })}
             </View>
           </ScrollView>
-          <Button className="w-full bg-[#F0F8F4]0 text-white mt-4" onClick={handleBatchSet}>
+          <Button className="w-full bg-[#5EC4A0] text-white mt-4" onClick={handleBatchSet}>
             <Text className="text-white">保存排班</Text>
           </Button>
         </DialogContent>

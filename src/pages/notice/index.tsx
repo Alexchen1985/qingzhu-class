@@ -346,7 +346,7 @@ const NoticePage = () => {
         {/* 发布按钮 */}
         {canPublish && (
           <Button
-            className="w-full bg-[#F0F8F4]0 text-white"
+            className="w-full bg-[#5EC4A0] text-white"
             onClick={() => setShowAddDialog(true)}
           >
             <Plus size={16} color="#fff" />
@@ -436,7 +436,7 @@ const NoticePage = () => {
                 </View>
               )}
               <Button
-                className="w-full bg-[#F0F8F4]0 text-white"
+                className="w-full bg-[#5EC4A0] text-white"
                 disabled={publishing}
                 onClick={handlePublish}
               >

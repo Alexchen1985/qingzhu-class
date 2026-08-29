@@ -231,7 +231,7 @@ export default function ActivityPage() {
 
                     <View className="flex gap-2">
                       {activity.status === 'open' && !activity.is_signed_up && (
-                        <Button size="sm" className="flex-1 bg-[#F0F8F4]0 text-white"
+                        <Button size="sm" className="flex-1 bg-[#5EC4A0] text-white"
                           onClick={() => { setSelectedActivity(activity); setShowSignup(true) }}
                         >
                           <Text className="text-sm text-white">我要报名</Text>
@@ -334,7 +334,7 @@ export default function ActivityPage() {
                 />
               </View>
             </View>
-            <Button className="w-full bg-[#F0F8F4]0 text-white mt-4" onClick={handleCreate}>
+            <Button className="w-full bg-[#5EC4A0] text-white mt-4" onClick={handleCreate}>
               <Text className="text-white">发布活动</Text>
             </Button>
           </View>
@@ -375,7 +375,7 @@ export default function ActivityPage() {
                 />
               </View>
             </View>
-            <Button className="w-full bg-[#F0F8F4]0 text-white mt-4" onClick={handleSignup}>
+            <Button className="w-full bg-[#5EC4A0] text-white mt-4" onClick={handleSignup}>
               <Text className="text-white">确认报名</Text>
             </Button>
           </View>

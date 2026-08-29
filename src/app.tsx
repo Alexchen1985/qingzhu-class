@@ -1,7 +1,7 @@
 import { PropsWithChildren, useState, useEffect } from 'react';
 import Taro from '@tarojs/taro';
 import { LucideTaroProvider } from 'lucide-react-taro';
-import { initStorage } from '@/store';
+import { initStorage, setCurrentClassId, setUserRole } from '@/store';
 import { initCloud, login } from '@/services/cloud';
 import type { LoginResult, CurrentClass } from '@/services/cloud-types';
 import '@/app.css';
@@ -57,6 +57,8 @@ const App = ({ children }: PropsWithChildren) => {
           relation: first.member.relation,
         };
         Taro.setStorageSync(STORAGE_KEY_CURRENT_CLASS, cc);
+        setCurrentClassId(first.member.class_id);
+        setUserRole(first.member.role);
       }
       setReady(true);
       return;
@@ -78,6 +80,8 @@ const App = ({ children }: PropsWithChildren) => {
             relation: first.member.relation,
           };
           Taro.setStorageSync(STORAGE_KEY_CURRENT_CLASS, cc);
+          setCurrentClassId(first.member.class_id);
+          setUserRole(first.member.role);
         }
         setReady(true);
       })

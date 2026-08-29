@@ -15,6 +15,7 @@ import {
   GraduationCap,
 } from 'lucide-react-taro'
 import { classCreate, classJoin } from '@/services/cloud'
+import { setUserRole, setCurrentClassId } from '@/store'
 import type { ClassCreateResult, CurrentClass } from '@/services/cloud-types'
 
 const STORAGE_KEY_LOGIN = 'app_login_result'
@@ -65,6 +66,8 @@ const OnboardingPage = () => {
         relation: '',
       }
       Taro.setStorageSync(STORAGE_KEY_CURRENT_CLASS, cc)
+      setCurrentClassId(result.classInfo._id)
+      setUserRole('head_teacher')
 
       // 更新登录缓存
       const loginData = Taro.getStorageSync(STORAGE_KEY_LOGIN) || { openid: '', classes: [] }
@@ -118,6 +121,8 @@ const OnboardingPage = () => {
         relation: result.member.relation,
       }
       Taro.setStorageSync(STORAGE_KEY_CURRENT_CLASS, cc)
+      setCurrentClassId(result.member.class_id)
+      setUserRole(result.member.role)
 
       // 更新登录缓存
       const loginData = Taro.getStorageSync(STORAGE_KEY_LOGIN) || { openid: '', classes: [] }

@@ -192,7 +192,7 @@ const ProfilePage = () => {
             ) : (
               <View className="py-4">
                 <Text className="text-sm text-gray-400 text-center block">暂未加入班级</Text>
-                <Button className="w-full mt-3 bg-[#F0F8F4]0 text-white" onClick={handleGoOnboarding}>
+                <Button className="w-full mt-3 bg-[#5EC4A0] text-white" onClick={handleGoOnboarding}>
                   创建/加入班级
                 </Button>
               </View>
