@@ -66,9 +66,11 @@ export default function RosterPage() {
       setImportResult(result)
       setImportText('')
       await loadRoster()
+      Taro.showToast({ title: `导入成功 ${result.imported} 条`, icon: 'success' })
     } catch (err) {
-      console.error('导入失败:', err)
-      Taro.showToast({ title: '导入失败', icon: 'none' })
+      const errMsg = (err as Error).message || '导入失败'
+      console.error('导入失败:', errMsg)
+      Taro.showToast({ title: errMsg, icon: 'none', duration: 3000 })
     } finally {
       setImporting(false)
     }
