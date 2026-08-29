@@ -27,35 +27,28 @@ export function initCloud(): void {
   }
 }
 
-/** 通用云函数调用（weapp 端失败时自动降级到 mock） */
+/** 通用云函数调用（weapp 端调用云端，H5/抖音端用 mock） */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function callFunction<T = any>(
   name: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: Record<string, any>
 ): Promise<T> {
-  // H5/抖音端：直接返回 mock 数据
+  // H5/抖音端：返回 mock 数据
   if (!isWeapp()) {
     return getMockData<T>(name, data)
   }
-  // weapp 端：尝试调用云函数，失败则降级到 mock
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const wx = (Taro as any).cloud || (globalThis as any).wx?.cloud
-    if (!wx) {
-      console.warn('[Cloud] wx.cloud 不可用，使用 mock 数据')
-      return getMockData<T>(name, data)
-    }
-    const res = await wx.callFunction({ name, data: data || {} })
-    if (res.result?.code !== 0) {
-      console.warn('[Cloud] 云函数返回错误，使用 mock 数据:', res.result?.message)
-      return getMockData<T>(name, data)
-    }
-    return res.result.data as T
-  } catch (err) {
-    console.warn('[Cloud] 云函数调用失败，降级到 mock 数据:', (err as Error).message)
-    return getMockData<T>(name, data)
+  // weapp 端：调用云函数
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const wx = (Taro as any).cloud || (globalThis as any).wx?.cloud
+  if (!wx) {
+    throw new Error('wx.cloud 不可用，请确认已开通云开发')
   }
+  const res = await wx.callFunction({ name, data: data || {} })
+  if (res.result?.code !== 0) {
+    throw new Error(res.result?.message || '云函数调用失败')
+  }
+  return res.result.data as T
 }
 
 // ========== H5 Mock 数据 ==========
