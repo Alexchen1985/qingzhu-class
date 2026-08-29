@@ -41,6 +41,17 @@ const OnboardingPage = () => {
 
   const [copiedField, setCopiedField] = useState('')
 
+  // 根据邀请码判断角色类型
+  const getInviteType = (code: string): 'parent' | 'teacher' | 'committee' | 'unknown' => {
+    if (code === '666666') return 'teacher'
+    if (code === '999999') return 'committee'
+    if (code === '888888') return 'parent'
+    return 'unknown'
+  }
+
+  const inviteType = getInviteType(inviteCode)
+  const isTeacher = inviteType === 'teacher'
+
   const handleCreate = async () => {
     if (!schoolName.trim() || !className.trim() || !grade.trim()) {
       Taro.showToast({ title: '请填写完整信息', icon: 'none' })
@@ -96,9 +107,17 @@ const OnboardingPage = () => {
   }
 
   const handleJoin = async () => {
-    if (!inviteCode.trim() || !studentName.trim() || !parentName.trim() || !phone.trim()) {
-      Taro.showToast({ title: '请填写完整信息', icon: 'none' })
-      return
+    // 教师不需要学生姓名
+    if (isTeacher) {
+      if (!inviteCode.trim() || !parentName.trim() || !phone.trim()) {
+        Taro.showToast({ title: '请填写完整信息', icon: 'none' })
+        return
+      }
+    } else {
+      if (!inviteCode.trim() || !studentName.trim() || !parentName.trim() || !phone.trim()) {
+        Taro.showToast({ title: '请填写完整信息', icon: 'none' })
+        return
+      }
     }
     setJoining(true)
     try {
@@ -262,17 +281,24 @@ const OnboardingPage = () => {
                     <View className="bg-gray-50 rounded-xl px-3 py-2">
                       <Input className="w-full bg-transparent" placeholder="请输入6位邀请码" value={inviteCode} onInput={(e) => setInviteCode(e.detail.value)} maxlength={6} />
                     </View>
+                    {inviteType !== 'unknown' && (
+                      <Text className="block text-xs text-[#5EC4A0] mt-1">
+                        {isTeacher ? '教师身份' : inviteType === 'committee' ? '家委身份' : '家长身份'}
+                      </Text>
+                    )}
                   </View>
-                  <View>
-                    <Label className="text-sm text-gray-700 mb-1 block">学生姓名 *</Label>
-                    <View className="bg-gray-50 rounded-xl px-3 py-2">
-                      <Input className="w-full bg-transparent" placeholder="请输入学生姓名" value={studentName} onInput={(e) => setStudentName(e.detail.value)} />
+                  {!isTeacher && (
+                    <View>
+                      <Label className="text-sm text-gray-700 mb-1 block">学生姓名 *</Label>
+                      <View className="bg-gray-50 rounded-xl px-3 py-2">
+                        <Input className="w-full bg-transparent" placeholder="请输入学生姓名" value={studentName} onInput={(e) => setStudentName(e.detail.value)} />
+                      </View>
                     </View>
-                  </View>
+                  )}
                   <View>
-                    <Label className="text-sm text-gray-700 mb-1 block">家长姓名 *</Label>
+                    <Label className="text-sm text-gray-700 mb-1 block">{isTeacher ? '教师姓名 *' : '家长姓名 *'}</Label>
                     <View className="bg-gray-50 rounded-xl px-3 py-2">
-                      <Input className="w-full bg-transparent" placeholder="请输入家长姓名" value={parentName} onInput={(e) => setParentName(e.detail.value)} />
+                      <Input className="w-full bg-transparent" placeholder={isTeacher ? '请输入教师姓名' : '请输入家长姓名'} value={parentName} onInput={(e) => setParentName(e.detail.value)} />
                     </View>
                   </View>
                   <View>
@@ -281,12 +307,14 @@ const OnboardingPage = () => {
                       <Input className="w-full bg-transparent" placeholder="请输入手机号" type="number" value={phone} onInput={(e) => setPhone(e.detail.value)} maxlength={11} />
                     </View>
                   </View>
-                  <View>
-                    <Label className="text-sm text-gray-700 mb-1 block">与学生关系</Label>
-                    <View className="bg-gray-50 rounded-xl px-3 py-2">
-                      <Input className="w-full bg-transparent" placeholder="如：父亲、母亲、祖父" value={relation} onInput={(e) => setRelation(e.detail.value)} />
+                  {!isTeacher && (
+                    <View>
+                      <Label className="text-sm text-gray-700 mb-1 block">与学生关系</Label>
+                      <View className="bg-gray-50 rounded-xl px-3 py-2">
+                        <Input className="w-full bg-transparent" placeholder="如：父亲、母亲、祖父" value={relation} onInput={(e) => setRelation(e.detail.value)} />
+                      </View>
                     </View>
-                  </View>
+                  )}
                   <Button className="w-full bg-[#5EC4A0] text-white" onClick={handleJoin} disabled={joining}>
                     <Users size={16} color="#fff" />
                     <Text className="ml-1 text-sm">{joining ? '加入中...' : '加入班级'}</Text>

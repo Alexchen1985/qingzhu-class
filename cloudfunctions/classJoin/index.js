@@ -11,7 +11,7 @@ exports.main = async (event, context) => {
   if (!invite_code) {
     return { code: -1, message: '请输入邀请码', data: null }
   }
-  if (!student_name || !parent_name || !phone) {
+  if (!parent_name || !phone) {
     return { code: -1, message: '请填写完整信息', data: null }
   }
 
