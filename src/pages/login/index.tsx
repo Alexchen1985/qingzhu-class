@@ -86,9 +86,6 @@ const LoginPage = () => {
                   maxlength={11}
                 />
               </View>
-              <Text className="block text-xs text-gray-400 mt-1">
-                邀请码为手机号后六位
-              </Text>
             </View>
 
             <Button
@@ -104,7 +101,7 @@ const LoginPage = () => {
           <View className="mt-6 p-3 bg-[#F0F8F4] rounded-xl">
             <Text className="block text-xs text-gray-600">
               <Text className="font-semibold">温馨提示：</Text>
-              首次使用请先创建或加入班级。登录时需要输入您在班级中登记的手机号，邀请码自动取手机号后六位。
+              首次使用请先创建或加入班级。登录时需要输入您在班级中登记的手机号。
             </Text>
           </View>
         </CardContent>

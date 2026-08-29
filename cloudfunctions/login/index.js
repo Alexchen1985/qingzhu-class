@@ -13,9 +13,6 @@ exports.main = async (event, context) => {
   }
 
   try {
-    // 邀请码 = 手机号后六位
-    const inviteCode = phone.slice(-6)
-
     // 1. 查找该手机号对应的所有班级成员记录
     const memberRes = await db
       .collection('class_members')
@@ -29,29 +26,8 @@ exports.main = async (event, context) => {
       return { code: -1, message: '该手机号未加入任何班级', data: null }
     }
 
-    // 2. 验证邀请码（手机号后六位）是否匹配班级邀请码
-    const validMembers = []
-    for (const member of memberRes.data) {
-      // 查询班级信息，验证邀请码
-      const classRes = await db
-        .collection('classes')
-        .where({
-          _id: member.class_id,
-          invite_code: inviteCode,
-        })
-        .get()
-
-      if (classRes.data.length > 0) {
-        validMembers.push(member)
-      }
-    }
-
-    if (validMembers.length === 0) {
-      return { code: -1, message: '邀请码错误（应为手机号后六位）', data: null }
-    }
-
-    // 3. 批量查询班级和学校信息
-    const classIds = [...new Set(validMembers.map((m) => m.class_id))]
+    // 2. 批量查询班级和学校信息
+    const classIds = [...new Set(memberRes.data.map((m) => m.class_id))]
     const classRes = await db
       .collection('classes')
       .where({ _id: _.in(classIds) })
@@ -78,7 +54,7 @@ exports.main = async (event, context) => {
     }
 
     // 组装返回数据
-    const classes = validMembers.map((m) => {
+    const classes = memberRes.data.map((m) => {
       const cls = classMap[m.class_id] || {}
       const school = schoolMap[cls.school_id] || {}
       return {
