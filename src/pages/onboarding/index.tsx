@@ -59,7 +59,7 @@ const OnboardingPage = () => {
       const cc: CurrentClass = {
         classId: result.classInfo._id,
         className: result.classInfo.name,
-        role: 'head_teacher',
+        role: 'admin',
         studentName: '',
         parentName: '',
         phone: '',
@@ -67,7 +67,7 @@ const OnboardingPage = () => {
       }
       Taro.setStorageSync(STORAGE_KEY_CURRENT_CLASS, cc)
       setCurrentClassId(result.classInfo._id)
-      setUserRole('head_teacher')
+      setUserRole('admin')
 
       // 更新登录缓存
       const loginData = Taro.getStorageSync(STORAGE_KEY_LOGIN) || { openid: '', classes: [] }
@@ -76,7 +76,7 @@ const OnboardingPage = () => {
           _id: '',
           class_id: result.classInfo._id,
           openid: loginData.openid,
-          role: 'head_teacher',
+          role: 'admin',
           student_name: '',
           parent_name: '',
           phone: '',

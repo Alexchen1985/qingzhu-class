@@ -3,10 +3,11 @@
  */
 
 /** 班级角色 */
-export type ClassRole = 'head_teacher' | 'teacher' | 'committee' | 'parent'
+export type ClassRole = 'admin' | 'head_teacher' | 'teacher' | 'committee' | 'parent'
 
 /** 角色中文映射 */
 export const ROLE_LABELS: Record<ClassRole, string> = {
+  admin: '管理员',
   head_teacher: '班主任',
   teacher: '任课老师',
   committee: '家委',

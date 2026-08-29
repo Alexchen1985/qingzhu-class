@@ -40,7 +40,7 @@ export default function ActivityPage() {
 
   const classId = getCurrentClassId()
   const role = getUserRole()
-  const isManager = role === 'head_teacher' || role === 'committee'
+  const isManager = role === 'admin' || role === 'head_teacher' || role === 'committee'
   const isTeacher = role === 'teacher'
 
   const loadActivities = useCallback(async () => {

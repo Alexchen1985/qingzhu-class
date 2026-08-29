@@ -28,6 +28,7 @@ const STORAGE_KEY_CURRENT_CLASS = 'app_current_class'
 
 function getRoleBadgeClass(role: string): string {
   switch (role) {
+    case 'admin':
     case 'head_teacher':
       return 'bg-red-100 text-red-600 text-xs'
     case 'teacher':
@@ -76,7 +77,7 @@ const ProfilePage = () => {
 
   const roleLabel = currentClass ? ROLE_LABELS[currentClass.role as ClassRole] || '家长' : '未加入班级'
 
-  const isHeadTeacher = currentClass?.role === 'head_teacher'
+  const isHeadTeacher = currentClass?.role === 'admin' || currentClass?.role === 'head_teacher'
   const isCommittee = currentClass?.role === 'committee'
 
   const handleSwitchClass = (cls: ClassMemberWithClass) => {

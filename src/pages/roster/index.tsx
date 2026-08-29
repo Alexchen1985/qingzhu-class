@@ -15,6 +15,7 @@ import {
   rosterDelete,
   type RosterItem,
 } from '@/services/cloud'
+import { getCurrentClassId } from '@/store'
 
 export default function RosterPage() {
   const [rosterList, setRosterList] = useState<RosterItem[]>([])
@@ -31,7 +32,7 @@ export default function RosterPage() {
   const [newPhone, setNewPhone] = useState('')
   const [newRelation, setNewRelation] = useState('家长')
 
-  const classId = Taro.getStorageSync('current_class_id') || ''
+  const classId = getCurrentClassId()
 
   const loadRoster = useCallback(async () => {
     if (!classId) {

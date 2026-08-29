@@ -40,7 +40,7 @@ export default function DutyPage() {
   const classId = getCurrentClassId()
   const role = getUserRole()
   const studentName = getCurrentStudentName()
-  const isManager = role === 'head_teacher' || role === 'committee'
+  const isManager = role === 'admin' || role === 'head_teacher' || role === 'committee'
 
   const loadWeekData = useCallback(async () => {
     if (!classId) return
