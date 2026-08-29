@@ -134,42 +134,42 @@ const IndexPage = () => {
         <View className="flex gap-3">
           {/* 公告概览 */}
           <View
-            className="flex-1 bg-white rounded-xl p-3 shadow-sm"
+            className="flex-1 bg-white rounded-2xl p-4 shadow-sm"
             onClick={() => handleSwitchTab('/pages/notice/index')}
           >
-            <View className="flex items-center gap-1 mb-1">
-              <Megaphone size={14} color="#5EC4A0" />
-              <Text className="block text-xs text-gray-600">公告</Text>
+            <View className="flex items-center gap-1.5 mb-2">
+              <Megaphone size={16} color="#5EC4A0" />
+              <Text className="block text-sm text-gray-500">公告</Text>
             </View>
-            <Text className="block text-lg font-bold text-gray-800">
+            <Text className="block text-xl font-medium text-gray-700">
               {unreadCount > 0 ? `${unreadCount}条未读` : '全部已读'}
             </Text>
           </View>
 
           {/* 活动概览 */}
           <View
-            className="flex-1 bg-white rounded-xl p-3 shadow-sm"
+            className="flex-1 bg-white rounded-2xl p-4 shadow-sm"
             onClick={() => handleSwitchTab('/pages/activity/index')}
           >
-            <View className="flex items-center gap-1 mb-1">
-              <Calendar size={14} color="#5EC4A0" />
-              <Text className="block text-xs text-gray-600">活动</Text>
+            <View className="flex items-center gap-1.5 mb-2">
+              <Calendar size={16} color="#5EC4A0" />
+              <Text className="block text-sm text-gray-500">活动</Text>
             </View>
-            <Text className="block text-lg font-bold text-gray-800">
+            <Text className="block text-xl font-medium text-gray-700">
               {activeActivityCount > 0 ? `${activeActivityCount}个进行中` : '暂无活动'}
             </Text>
           </View>
 
           {/* 班费概览 */}
           <View
-            className="flex-1 bg-white rounded-xl p-3 shadow-sm"
+            className="flex-1 bg-white rounded-2xl p-4 shadow-sm"
             onClick={() => handleSwitchTab('/pages/finance/index')}
           >
-            <View className="flex items-center gap-1 mb-1">
-              <Wallet size={14} color="#5EC4A0" />
-              <Text className="block text-xs text-gray-600">班费余额</Text>
+            <View className="flex items-center gap-1.5 mb-2">
+              <Wallet size={16} color="#5EC4A0" />
+              <Text className="block text-sm text-gray-500">班费余额</Text>
             </View>
-            <Text className="block text-lg font-bold text-gray-800">
+            <Text className="block text-xl font-medium text-gray-700">
               ¥{(balance / 100).toFixed(0)}
             </Text>
           </View>
