@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { GraduationCap, Phone } from 'lucide-react-taro'
 import { login } from '@/services/cloud'
-import { setUserRole, setCurrentClassId } from '@/store'
+import { setUserRole, setCurrentClassId, setCurrentStudentName, updateProfile } from '@/store'
 import type { LoginResult, CurrentClass } from '@/services/cloud-types'
 
 const STORAGE_KEY_LOGIN = 'app_login_result'
@@ -44,6 +44,14 @@ const LoginPage = () => {
         Taro.setStorageSync(STORAGE_KEY_CURRENT_CLASS, cc)
         setCurrentClassId(first.member.class_id)
         setUserRole(first.member.role)
+        setCurrentStudentName(first.member.student_name)
+        // 更新用户资料
+        updateProfile({
+          studentName: first.member.student_name,
+          parentName: first.member.parent_name,
+          contact: first.member.phone,
+          role: first.member.role as any,
+        })
       }
 
       Taro.showToast({ title: '登录成功', icon: 'success' })
