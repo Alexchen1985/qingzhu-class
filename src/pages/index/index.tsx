@@ -125,9 +125,6 @@ const IndexPage = () => {
               {studentName ? `${studentName} 的家长` : '欢迎'} · {role}
             </Text>
           </View>
-          <View className="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
-            <Bell size={24} color="#fff" />
-          </View>
         </View>
 
         {/* 三大统计卡片 */}
@@ -137,11 +134,6 @@ const IndexPage = () => {
             className="flex-1 bg-gradient-to-br from-[#5EC4A0] to-[#4AA886] rounded-2xl p-4 shadow-md"
             onClick={() => handleSwitchTab('/pages/notice/index')}
           >
-            <View className="flex items-center justify-between mb-3">
-              <View className="w-10 h-10 rounded-full bg-white bg-opacity-25 flex items-center justify-center">
-                <Megaphone size={20} color="#fff" />
-              </View>
-            </View>
             <Text className="block text-2xl font-bold text-white mb-1">
               {unreadCount > 0 ? `${unreadCount}` : '0'}
             </Text>
@@ -155,11 +147,6 @@ const IndexPage = () => {
             className="flex-1 bg-gradient-to-br from-[#60A5FA] to-[#3B82F6] rounded-2xl p-4 shadow-md"
             onClick={() => handleSwitchTab('/pages/activity/index')}
           >
-            <View className="flex items-center justify-between mb-3">
-              <View className="w-10 h-10 rounded-full bg-white bg-opacity-25 flex items-center justify-center">
-                <Calendar size={20} color="#fff" />
-              </View>
-            </View>
             <Text className="block text-2xl font-bold text-white mb-1">
               {activeActivityCount > 0 ? `${activeActivityCount}` : '0'}
             </Text>
@@ -173,11 +160,6 @@ const IndexPage = () => {
             className="flex-1 bg-gradient-to-br from-[#FBBF24] to-[#F59E0B] rounded-2xl p-4 shadow-md"
             onClick={() => handleSwitchTab('/pages/finance/index')}
           >
-            <View className="flex items-center justify-between mb-3">
-              <View className="w-10 h-10 rounded-full bg-white bg-opacity-25 flex items-center justify-center">
-                <Wallet size={20} color="#fff" />
-              </View>
-            </View>
             <Text className="block text-2xl font-bold text-white mb-1">
               ¥{(balance / 100).toFixed(0)}
             </Text>
