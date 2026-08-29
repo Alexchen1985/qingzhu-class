@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Users, Plus, Upload, Trash2, CircleCheck, CircleX } from 'lucide-react-taro'
+import { Users, Plus, Upload, Trash2, CircleCheck, CircleX, Pencil } from 'lucide-react-taro'
 import {
   getRosterList,
   rosterImport,
@@ -31,6 +31,13 @@ export default function RosterPage() {
   const [newParentName, setNewParentName] = useState('')
   const [newPhone, setNewPhone] = useState('')
   const [newRelation, setNewRelation] = useState('家长')
+
+  // 编辑表单
+  const [editingItem, setEditingItem] = useState<RosterItem | null>(null)
+  const [editStudentName, setEditStudentName] = useState('')
+  const [editParentName, setEditParentName] = useState('')
+  const [editPhone, setEditPhone] = useState('')
+  const [editRelation, setEditRelation] = useState('')
 
   const classId = getCurrentClassId()
 
@@ -113,6 +120,40 @@ export default function RosterPage() {
     } catch (err) {
       console.error('删除失败:', err)
       Taro.showToast({ title: '删除失败', icon: 'none' })
+    }
+  }
+
+  const handleEdit = (item: RosterItem) => {
+    setEditingItem(item)
+    setEditStudentName(item.student_name)
+    setEditParentName(item.parent_name)
+    setEditPhone(item.phone)
+    setEditRelation(item.relation)
+  }
+
+  const handleSaveEdit = async () => {
+    if (!editStudentName || !editParentName || !editPhone) {
+      Taro.showToast({ title: '请填写完整信息', icon: 'none' })
+      return
+    }
+    try {
+      await rosterAdd({
+        class_id: classId,
+        student_name: editStudentName,
+        parent_name: editParentName,
+        phone: editPhone,
+        relation: editRelation,
+      })
+      // 删除旧记录
+      if (editingItem) {
+        await rosterDelete({ roster_id: editingItem._id, class_id: classId })
+      }
+      Taro.showToast({ title: '修改成功', icon: 'success' })
+      setEditingItem(null)
+      await loadRoster()
+    } catch (err) {
+      console.error('修改失败:', err)
+      Taro.showToast({ title: '修改失败', icon: 'none' })
     }
   }
 
@@ -215,13 +256,22 @@ export default function RosterPage() {
                       手机：{item.phone}
                     </Text>
                   </View>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDelete(item._id, item.student_name)}
-                  >
-                    <Trash2 size={16} color="#EF4444" />
-                  </Button>
+                  <View className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(item)}
+                    >
+                      <Pencil size={16} color="#5EC4A0" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(item._id, item.student_name)}
+                    >
+                      <Trash2 size={16} color="#EF4444" />
+                    </Button>
+                  </View>
                 </View>
               </CardContent>
             </Card>
@@ -328,6 +378,70 @@ export default function RosterPage() {
               </Button>
               <Button className="flex-1 bg-[#5EC4A0]" onClick={handleAdd}>
                 添加
+              </Button>
+            </View>
+          </View>
+        </DialogContent>
+      </Dialog>
+
+      {/* 编辑弹窗 */}
+      <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>编辑学生信息</DialogTitle>
+          </DialogHeader>
+          <View className="space-y-3">
+            <View>
+              <Text className="block text-sm text-gray-600 mb-1">学生姓名 *</Text>
+              <View className="bg-gray-50 rounded-xl px-4 py-3">
+                <Input
+                  className="w-full bg-transparent"
+                  placeholder="请输入学生姓名"
+                  value={editStudentName}
+                  onInput={(e) => setEditStudentName(e.detail.value)}
+                />
+              </View>
+            </View>
+            <View>
+              <Text className="block text-sm text-gray-600 mb-1">家长姓名 *</Text>
+              <View className="bg-gray-50 rounded-xl px-4 py-3">
+                <Input
+                  className="w-full bg-transparent"
+                  placeholder="请输入家长姓名"
+                  value={editParentName}
+                  onInput={(e) => setEditParentName(e.detail.value)}
+                />
+              </View>
+            </View>
+            <View>
+              <Text className="block text-sm text-gray-600 mb-1">手机号 *</Text>
+              <View className="bg-gray-50 rounded-xl px-4 py-3">
+                <Input
+                  className="w-full bg-transparent"
+                  type="number"
+                  placeholder="请输入手机号"
+                  value={editPhone}
+                  onInput={(e) => setEditPhone(e.detail.value)}
+                />
+              </View>
+            </View>
+            <View>
+              <Text className="block text-sm text-gray-600 mb-1">与学生关系</Text>
+              <View className="bg-gray-50 rounded-xl px-4 py-3">
+                <Input
+                  className="w-full bg-transparent"
+                  placeholder="如：父亲、母亲"
+                  value={editRelation}
+                  onInput={(e) => setEditRelation(e.detail.value)}
+                />
+              </View>
+            </View>
+            <View className="flex gap-3 pt-2">
+              <Button variant="outline" className="flex-1" onClick={() => setEditingItem(null)}>
+                取消
+              </Button>
+              <Button className="flex-1 bg-[#5EC4A0]" onClick={handleSaveEdit}>
+                保存
               </Button>
             </View>
           </View>
