@@ -109,13 +109,21 @@ function getMockData<T>(name: string, _data?: Record<string, any>): T {
         },
         schoolName: (_data?.school_name as string) || '南京南站小学',
       } as T
-    case CLOUD_FUNCTIONS.CLASS_JOIN:
+    case CLOUD_FUNCTIONS.CLASS_JOIN: {
+      // 根据邀请码返回不同角色
+      const inviteCode = _data?.invite_code as string
+      let role: 'parent' | 'teacher' | 'committee' = 'parent'
+      if (inviteCode === '666666') {
+        role = 'teacher'
+      } else if (inviteCode === '999999') {
+        role = 'committee'
+      }
       return {
         member: {
           _id: 'mock_joined_member',
           class_id: 'mock_class_joined',
           openid: 'mock_openid_h5',
-          role: 'parent',
+          role: role,
           student_name: (_data?.student_name as string) || '李小红',
           parent_name: (_data?.parent_name as string) || '李女士',
           phone: (_data?.phone as string) || '13900005678',
@@ -126,6 +134,7 @@ function getMockData<T>(name: string, _data?: Record<string, any>): T {
         className: '青竹班',
         schoolName: '南京南站小学',
       } as T
+    }
     case CLOUD_FUNCTIONS.ROSTER_IMPORT: {
       const action = _data?.action as string
       if (action === 'list') {
