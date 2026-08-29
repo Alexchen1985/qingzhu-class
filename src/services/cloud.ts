@@ -432,8 +432,8 @@ function getMockData<T>(name: string, _data?: Record<string, any>): T {
 // ========== 业务 API ==========
 
 /** 登录：获取 openid 和已加入班级列表 */
-export async function login(): Promise<LoginResult> {
-  return callFunction<LoginResult>(CLOUD_FUNCTIONS.LOGIN)
+export async function login(params?: { phone?: string }): Promise<LoginResult> {
+  return callFunction<LoginResult>(CLOUD_FUNCTIONS.LOGIN, params || {})
 }
 
 /** 创建班级 */

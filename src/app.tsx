@@ -39,7 +39,7 @@ const App = ({ children }: PropsWithChildren) => {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    // 尝试静默登录
+    // 检查本地缓存
     const cached = getLocalLogin();
     if (cached && cached.classes.length > 0) {
       // 已有缓存，直接使用
@@ -64,31 +64,9 @@ const App = ({ children }: PropsWithChildren) => {
       return;
     }
 
-    // 无缓存，调用云函数
-    login()
-      .then((result: LoginResult) => {
-        Taro.setStorageSync(STORAGE_KEY_LOGIN, result);
-        if (result.classes.length > 0) {
-          const first = result.classes[0];
-          const cc: CurrentClass = {
-            classId: first.member.class_id,
-            className: first.className,
-            role: first.member.role,
-            studentName: first.member.student_name,
-            parentName: first.member.parent_name,
-            phone: first.member.phone,
-            relation: first.member.relation,
-          };
-          Taro.setStorageSync(STORAGE_KEY_CURRENT_CLASS, cc);
-          setCurrentClassId(first.member.class_id);
-          setUserRole(first.member.role);
-        }
-        setReady(true);
-      })
-      .catch(() => {
-        // H5 mock 或网络失败，也放行
-        setReady(true);
-      });
+    // 无缓存，跳转到登录页面
+    setReady(true);
+    Taro.redirectTo({ url: '/pages/login/index' });
   }, []);
 
   if (!ready) {
