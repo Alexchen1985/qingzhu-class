@@ -83,7 +83,7 @@ const IndexPage = () => {
   ).length
 
   const activeActivityCount = activities.filter(
-    (a) => a.status === 'active'
+    (a) => a.status === 'open'
   ).length
 
   const handleNavigate = (url: string) => {
