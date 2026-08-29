@@ -70,6 +70,10 @@ const LoginPage = () => {
           contact: first.member.phone,
           role: first.member.role as any,
         })
+      } else {
+        // 没有班级信息，提示用户先加入班级
+        Taro.showToast({ title: '该手机号未加入任何班级', icon: 'none', duration: 3000 })
+        return
       }
 
       Taro.showToast({ title: '登录成功', icon: 'success' })
