@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import Taro from '@tarojs/taro'
-import { View, Text, Image } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
+import { Leaf } from 'lucide-react-taro'
 
 function Splash() {
   useEffect(() => {
@@ -20,12 +21,8 @@ function Splash() {
   return (
     <View className="flex flex-col items-center justify-center min-h-full bg-gradient-to-b from-[#5EC4A0] to-[#4AA886]">
       {/* Logo */}
-      <View className="w-32 h-32 rounded-full bg-white p-2 shadow-lg mb-6">
-        <Image
-          src="/assets/logo.png"
-          mode="aspectFit"
-          className="w-full h-full rounded-full"
-        />
+      <View className="w-32 h-32 rounded-full bg-white p-3 shadow-lg mb-6 flex items-center justify-center">
+        <Leaf size={64} color="#5EC4A0" />
       </View>
 
       {/* 品牌名 */}
