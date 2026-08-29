@@ -18,6 +18,7 @@ import {
   Copy,
   Check,
   LogOut,
+  Users,
 } from 'lucide-react-taro'
 import { ROLE_LABELS } from '@/services/cloud-types'
 import type { ClassRole, ClassMemberWithClass, CurrentClass } from '@/services/cloud-types'
@@ -76,6 +77,7 @@ const ProfilePage = () => {
   const roleLabel = currentClass ? ROLE_LABELS[currentClass.role as ClassRole] || '家长' : '未加入班级'
 
   const isHeadTeacher = currentClass?.role === 'head_teacher'
+  const isCommittee = currentClass?.role === 'committee'
 
   const handleSwitchClass = (cls: ClassMemberWithClass) => {
     const cc: CurrentClass = {
@@ -206,6 +208,31 @@ const ProfilePage = () => {
                     </Text>
                     <Text className="text-xs text-gray-400">
                       查看并分享邀请码给家长和老师
+                    </Text>
+                  </View>
+                </View>
+                <ChevronRight size={16} color="#9CA3AF" />
+              </View>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* 名单管理入口（班主任/家委可见） */}
+        {(isHeadTeacher || isCommittee) && (
+          <Card className="shadow-sm border-0">
+            <CardContent className="p-4">
+              <View
+                className="flex items-center justify-between"
+                onClick={() => Taro.navigateTo({ url: '/pages/roster/index' })}
+              >
+                <View className="flex items-center gap-2">
+                  <Users size={16} color="#F97316" />
+                  <View>
+                    <Text className="text-sm font-medium text-gray-800 block">
+                      家长名单管理
+                    </Text>
+                    <Text className="text-xs text-gray-400">
+                      导入/管理班级家长清单
                     </Text>
                   </View>
                 </View>

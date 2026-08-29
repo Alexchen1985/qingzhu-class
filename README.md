@@ -780,14 +780,16 @@ create(@Body() body: unknown) {
 
 ### 数据库集合
 
-在云开发控制台手动创建以下 4 个集合：
+在云开发控制台手动创建以下 6 个集合：
 
 | 集合名 | 说明 |
 |--------|------|
 | `schools` | 学校信息 |
 | `classes` | 班级信息（含邀请码） |
 | `class_members` | 班级成员（关联 openid 和角色） |
-| `roster` | 家长清单（家委导入，第2批实现） |
+| `roster` | 家长清单（家委导入，家长加入时匹配校验） |
+| `announcements` | 班级公告（含类型、审批状态、图片等） |
+| `announcement_reads` | 公告已读记录 |
 
 ### 数据库安全规则
 
@@ -808,4 +810,6 @@ create(@Body() body: unknown) {
 |--------|------|------|
 | `login` | 获取 openid + 已加入班级列表 | 无 |
 | `classCreate` | 创建班级，生成3个邀请码 | `school_name, class_name, grade` |
-| `classJoin` | 通过邀请码加入班级 | `invite_code, student_name, parent_name, phone, relation` |
+| `classJoin` | 通过邀请码加入班级（家长码需 roster 匹配） | `invite_code, student_name, parent_name, phone, relation` |
+| `rosterImport` | 批量导入家长名单 | `class_id, text`（多行文本） |
+| `announcement` | 公告管理（发布/列表/已读/统计/审批） | `action: publish/list/markRead/stats/approve` |

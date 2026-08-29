@@ -7,7 +7,8 @@ export default typeof defineAppConfig === 'function'
         'pages/finance/index',
         'pages/profile/index',
         'pages/duty/index',
-        'pages/onboarding/index'
+        'pages/onboarding/index',
+        'pages/roster/index'
       ],
       window: {
         backgroundTextStyle: 'light',

@@ -19,18 +19,17 @@ exports.main = async (event, context) => {
     // 1. 查找邀请码对应的班级
     const classRes = await db
       .collection('classes')
-      .where({
-        invite_code: invite_code,
-      })
+      .where({ invite_code: invite_code })
       .get()
 
     let role = 'parent'
     let targetClass = null
+    let isParentCode = false
 
     if (classRes.data.length > 0) {
-      // 家长码匹配
       targetClass = classRes.data[0]
       role = 'parent'
+      isParentCode = true
     } else {
       // 尝试教师码
       const teacherRes = await db
@@ -70,29 +69,53 @@ exports.main = async (event, context) => {
       .get()
 
     if (existRes.data.length > 0) {
-      return {
-        code: -1,
-        message: '您已加入该班级',
-        data: null,
-      }
+      return { code: -1, message: '您已加入该班级', data: null }
     }
 
-    // 3. 写入 class_members
+    // 3. 家长码需要 roster 校验
+    let rosterId = ''
+    if (isParentCode) {
+      const rosterRes = await db
+        .collection('roster')
+        .where({
+          class_id: targetClass._id,
+          student_name: student_name,
+          parent_name: parent_name,
+          phone: phone,
+        })
+        .get()
+
+      if (rosterRes.data.length === 0) {
+        return {
+          code: -2,
+          message: 'ROSTER_NOT_MATCHED',
+          data: null,
+        }
+      }
+      rosterId = rosterRes.data[0]._id
+    }
+
+    // 4. 写入 class_members
+    const memberData = {
+      class_id: targetClass._id,
+      openid: openid,
+      role: role,
+      student_name: student_name,
+      parent_name: parent_name,
+      phone: phone,
+      relation: relation || '',
+      status: 'active',
+      created_at: db.serverDate(),
+    }
+    if (rosterId) {
+      memberData.roster_id = rosterId
+    }
+
     const addRes = await db.collection('class_members').add({
-      data: {
-        class_id: targetClass._id,
-        openid: openid,
-        role: role,
-        student_name: student_name,
-        parent_name: parent_name,
-        phone: phone,
-        relation: relation || '',
-        status: 'active',
-        created_at: db.serverDate(),
-      },
+      data: memberData,
     })
 
-    // 4. 查询学校名称
+    // 5. 查询学校名称
     let schoolName = ''
     if (targetClass.school_id) {
       try {
@@ -106,7 +129,7 @@ exports.main = async (event, context) => {
       }
     }
 
-    // 5. 返回结果
+    // 6. 返回结果
     const memberDoc = await db.collection('class_members').doc(addRes._id).get()
 
     return {

@@ -11,6 +11,8 @@ export const CLOUD_FUNCTIONS = {
   LOGIN: 'login',
   CLASS_CREATE: 'classCreate',
   CLASS_JOIN: 'classJoin',
+  ROSTER_IMPORT: 'rosterImport',
+  ANNOUNCEMENT: 'announcement',
 } as const
 
 /** 数据库集合名称 */

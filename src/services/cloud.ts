@@ -117,6 +117,109 @@ function getMockData<T>(name: string, _data?: Record<string, any>): T {
         className: '三（1）班',
         schoolName: '南京市XX小学',
       } as T
+    case CLOUD_FUNCTIONS.ROSTER_IMPORT: {
+      const action = _data?.action as string
+      if (action === 'list') {
+        return [
+          {
+            _id: 'mock_roster_1',
+            class_id: 'mock_class_1',
+            student_name: '张小明',
+            parent_name: '张先生',
+            phone: '13800001234',
+            relation: '父亲',
+            imported_by: 'mock_openid_h5',
+            created_at: new Date().toISOString(),
+            joined: true,
+          },
+          {
+            _id: 'mock_roster_2',
+            class_id: 'mock_class_1',
+            student_name: '李小红',
+            parent_name: '李女士',
+            phone: '13900005678',
+            relation: '母亲',
+            imported_by: 'mock_openid_h5',
+            created_at: new Date().toISOString(),
+            joined: false,
+          },
+        ] as T
+      }
+      if (action === 'add') {
+        return { _id: 'mock_new_roster' } as T
+      }
+      if (action === 'delete') {
+        return undefined as T
+      }
+      // import action
+      return { imported: 3, skipped: 1 } as T
+    }
+    case CLOUD_FUNCTIONS.ANNOUNCEMENT: {
+      const action = _data?.action as string
+      if (action === 'publish') {
+        return {
+          _id: 'mock_announcement_new',
+          type: 'official',
+          approve_status: 'approved',
+          tip: '发布成功',
+        } as T
+      }
+      if (action === 'list') {
+        return {
+          announcements: [
+            {
+              _id: 'mock_ann_1',
+              class_id: 'mock_class_1',
+              type: 'official',
+              title: '期末家长会通知',
+              content: '各位家长，本周五下午2点召开期末家长会...',
+              images: [],
+              need_confirm: true,
+              is_pinned: true,
+              approve_status: 'approved',
+              author_openid: 'mock_openid_h5',
+              author_name: '张先生',
+              created_at: new Date().toISOString(),
+              is_read: false,
+              read_count: 15,
+            },
+            {
+              _id: 'mock_ann_2',
+              class_id: 'mock_class_1',
+              type: 'committee',
+              title: '家委活动经费公示',
+              content: '本次秋游活动经费使用情况如下...',
+              images: [],
+              need_confirm: false,
+              is_pinned: false,
+              approve_status: 'approved',
+              author_openid: 'mock_openid_h5',
+              author_name: '张先生',
+              created_at: new Date(Date.now() - 86400000).toISOString(),
+              is_read: true,
+              read_count: 20,
+            },
+          ],
+          role: 'head_teacher',
+        } as T
+      }
+      if (action === 'markRead') {
+        return { already_read: false } as T
+      }
+      if (action === 'stats') {
+        return {
+          read_count: 15,
+          readers: [
+            { member_name: '张先生', read_at: new Date().toISOString() },
+            { member_name: '李女士', read_at: new Date().toISOString() },
+          ],
+        } as T
+      }
+      if (action === 'approve') {
+        return { approve_status: _data?.result } as T
+      }
+      return {} as T
+    }
     default:
       throw new Error(`未知云函数: ${name}`)
   }
@@ -147,4 +250,182 @@ export async function classJoin(params: {
   relation: string
 }): Promise<ClassJoinResult> {
   return callFunction<ClassJoinResult>(CLOUD_FUNCTIONS.CLASS_JOIN, params)
+}
+
+// ========== Roster API ==========
+
+export interface RosterItem {
+  _id: string
+  class_id: string
+  student_name: string
+  parent_name: string
+  phone: string
+  relation: string
+  imported_by: string
+  created_at: string
+  joined?: boolean
+  joined_member_id?: string
+}
+
+/** 获取班级名单 */
+export async function getRosterList(classId: string): Promise<RosterItem[]> {
+  return callFunction<RosterItem[]>(CLOUD_FUNCTIONS.ROSTER_IMPORT, {
+    action: 'list',
+    class_id: classId,
+  })
+}
+
+/** 批量导入名单 */
+export async function rosterImport(params: {
+  class_id: string
+  text: string
+}): Promise<{ imported: number; skipped: number }> {
+  return callFunction<{ imported: number; skipped: number }>(
+    CLOUD_FUNCTIONS.ROSTER_IMPORT,
+    params
+  )
+}
+
+/** 手动添加单条名单 */
+export async function rosterAdd(params: {
+  class_id: string
+  student_name: string
+  parent_name: string
+  phone: string
+  relation: string
+}): Promise<{ _id: string }> {
+  return callFunction<{ _id: string }>(CLOUD_FUNCTIONS.ROSTER_IMPORT, {
+    action: 'add',
+    ...params,
+  })
+}
+
+/** 删除名单 */
+export async function rosterDelete(params: {
+  roster_id: string
+  class_id: string
+}): Promise<void> {
+  return callFunction<void>(CLOUD_FUNCTIONS.ROSTER_IMPORT, {
+    action: 'delete',
+    ...params,
+  })
+}
+
+// ========== Announcement API ==========
+
+export interface CloudAnnouncement {
+  _id: string
+  class_id: string
+  type: 'official' | 'teacher' | 'committee'
+  title: string
+  content: string
+  images: string[]
+  need_confirm: boolean
+  is_pinned: boolean
+  approve_status: 'pending' | 'approved' | 'rejected'
+  approve_reason?: string
+  author_openid: string
+  author_name: string
+  created_at: string
+  is_read?: boolean
+  read_count?: number
+}
+
+export interface AnnouncementStats {
+  read_count: number
+  readers: Array<{ member_name: string; read_at: string }>
+}
+
+/** 发布公告 */
+export async function publishAnnouncement(params: {
+  class_id: string
+  title: string
+  content: string
+  images?: string[]
+  need_confirm?: boolean
+  is_pinned?: boolean
+}): Promise<{ _id: string; type: string; approve_status: string; tip: string }> {
+  return callFunction(CLOUD_FUNCTIONS.ANNOUNCEMENT, {
+    action: 'publish',
+    ...params,
+  })
+}
+
+/** 获取公告列表 */
+export async function getAnnouncementList(classId: string): Promise<{
+  announcements: CloudAnnouncement[]
+  role: string
+}> {
+  return callFunction(CLOUD_FUNCTIONS.ANNOUNCEMENT, {
+    action: 'list',
+    class_id: classId,
+  })
+}
+
+/** 标记已读 */
+export async function markAnnouncementRead(params: {
+  announcement_id: string
+  class_id: string
+}): Promise<{ already_read: boolean }> {
+  return callFunction(CLOUD_FUNCTIONS.ANNOUNCEMENT, {
+    action: 'markRead',
+    ...params,
+  })
+}
+
+/** 获取已读统计 */
+export async function getAnnouncementStats(params: {
+  announcement_id: string
+  class_id: string
+}): Promise<AnnouncementStats> {
+  return callFunction<AnnouncementStats>(CLOUD_FUNCTIONS.ANNOUNCEMENT, {
+    action: 'stats',
+    ...params,
+  })
+}
+
+/** 审批公告 */
+export async function approveAnnouncement(params: {
+  announcement_id: string
+  result: 'approved' | 'rejected'
+  reason?: string
+}): Promise<{ approve_status: string }> {
+  return callFunction(CLOUD_FUNCTIONS.ANNOUNCEMENT, {
+    action: 'approve',
+    ...params,
+  })
+}
+
+/** 上传图片到云存储 */
+export async function uploadImageToCloud(
+  filePath: string,
+  classId: string
+): Promise<string> {
+  if (!isWeapp()) {
+    throw new Error('H5 端不支持云存储上传')
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const cloudApi = (Taro as any).cloud || (globalThis as any).wx?.cloud
+  if (!cloudApi) {
+    throw new Error('云开发未初始化')
+  }
+  const timestamp = Date.now()
+  const cloudPath = `announcements/${classId}/${timestamp}.jpg`
+  const res = await cloudApi.uploadFile({
+    cloudPath,
+    filePath,
+  })
+  return res.fileID
+}
+
+/** 获取云文件临时链接 */
+export async function getTempFileURL(fileIDs: string[]): Promise<string[]> {
+  if (!isWeapp() || fileIDs.length === 0) return []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const cloudApi = (Taro as any).cloud || (globalThis as any).wx?.cloud
+  if (!cloudApi) return []
+  const res = await cloudApi.getTempFileURL({ fileList: fileIDs })
+  return res.fileList
+    .filter((f: { status: number }) => f.status === 0)
+    .map((f: { tempFileURL: string }) => f.tempFileURL)
 }
