@@ -18,7 +18,7 @@ import {
   getActivitySignupList, cancelActivity,
   type CloudActivity, type CloudSignup
 } from '@/services/cloud'
-import { getCurrentClassId, getUserRole } from '@/store'
+import { getCurrentClassId, getUserRole, getProfile } from '@/store'
 
 const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> = {
   open: { label: '进行中', color: 'text-green-600', bg: 'bg-green-50' },
@@ -88,6 +88,18 @@ export default function ActivityPage() {
     const value = e.detail.value
     setDeadlinePicker(value)
     setForm({ ...form, deadline: value })
+  }
+
+  const openSignupDialog = (activity: CloudActivity) => {
+    setSelectedActivity(activity)
+    // 自动填充用户信息
+    const profile = getProfile()
+    setSignupForm({
+      student_name: profile.studentName || '',
+      contact: profile.contact || '',
+      note: '',
+    })
+    setShowSignup(true)
   }
 
   const handleSignup = async () => {
@@ -248,7 +260,7 @@ export default function ActivityPage() {
                     <View className="flex gap-2">
                       {activity.status === 'open' && !activity.is_signed_up && (
                         <Button size="sm" className="flex-1 bg-[#5EC4A0] text-white"
-                          onClick={() => { setSelectedActivity(activity); setShowSignup(true) }}
+                          onClick={() => openSignupDialog(activity)}
                         >
                           <Text className="text-sm text-white">我要报名</Text>
                         </Button>
