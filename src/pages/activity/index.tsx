@@ -3,7 +3,7 @@
  * 数据来源：activity 云函数
  */
 import { useState, useCallback } from 'react'
-import { View, Text, ScrollView } from '@tarojs/components'
+import { View, Text, ScrollView, Picker } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -37,6 +37,8 @@ export default function ActivityPage() {
   const [signupList, setSignupList] = useState<CloudSignup[]>([])
   const [form, setForm] = useState({ title: '', description: '', location: '', start_time: '', deadline: '', max_participants: '' })
   const [signupForm, setSignupForm] = useState({ student_name: '', contact: '', note: '' })
+  const [startTimePicker, setStartTimePicker] = useState('')
+  const [deadlinePicker, setDeadlinePicker] = useState('')
 
   const classId = getCurrentClassId()
   const role = getUserRole()
@@ -68,10 +70,24 @@ export default function ActivityPage() {
       Taro.showToast({ title: '创建成功', icon: 'success' })
       setShowCreate(false)
       setForm({ title: '', description: '', location: '', start_time: '', deadline: '', max_participants: '' })
+      setStartTimePicker('')
+      setDeadlinePicker('')
       loadActivities()
     } catch (e: unknown) {
       Taro.showToast({ title: (e as Error)?.message || '创建失败', icon: 'none' })
     }
+  }
+
+  const handleStartTimeChange = (e: any) => {
+    const value = e.detail.value
+    setStartTimePicker(value)
+    setForm({ ...form, start_time: value })
+  }
+
+  const handleDeadlineChange = (e: any) => {
+    const value = e.detail.value
+    setDeadlinePicker(value)
+    setForm({ ...form, deadline: value })
   }
 
   const handleSignup = async () => {
@@ -303,19 +319,23 @@ export default function ActivityPage() {
             <View className="grid grid-cols-2 gap-3">
               <View>
                 <Text className="block text-sm text-gray-600 mb-1">开始时间</Text>
-                <View className="bg-gray-50 rounded-xl px-4 py-3">
-                  <Input className="w-full bg-transparent" placeholder="2024-10-01 09:00"
-                    value={form.start_time} onInput={(e) => setForm({ ...form, start_time: e.detail.value })}
-                  />
-                </View>
+                <Picker mode="date" value={startTimePicker} onChange={handleStartTimeChange}>
+                  <View className="bg-gray-50 rounded-xl px-4 py-3">
+                    <Text className="block text-sm">
+                      {startTimePicker || '选择日期'}
+                    </Text>
+                  </View>
+                </Picker>
               </View>
               <View>
                 <Text className="block text-sm text-gray-600 mb-1">报名截止</Text>
-                <View className="bg-gray-50 rounded-xl px-4 py-3">
-                  <Input className="w-full bg-transparent" placeholder="2024-09-28 18:00"
-                    value={form.deadline} onInput={(e) => setForm({ ...form, deadline: e.detail.value })}
-                  />
-                </View>
+                <Picker mode="date" value={deadlinePicker} onChange={handleDeadlineChange}>
+                  <View className="bg-gray-50 rounded-xl px-4 py-3">
+                    <Text className="block text-sm">
+                      {deadlinePicker || '选择日期'}
+                    </Text>
+                  </View>
+                </Picker>
               </View>
             </View>
             <View>
