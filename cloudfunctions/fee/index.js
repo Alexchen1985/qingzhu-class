@@ -35,14 +35,14 @@ async function isManager(classId, openid) {
   const res = await db.collection('class_members')
     .where({ class_id: classId, openid, status: 'active' }).limit(1).get()
   const role = res.data.length > 0 ? res.data[0].role : null
-  return role === 'head_teacher' || role === 'committee'
+  return role === 'admin' || role === 'head_teacher' || role === 'committee'
 }
 
 // 添加收支记录
 async function recordAdd(event, openid, role) {
   const { class_id, type, amount, purpose, handler_name, voucher_images, occurred_at } = event
   if (!class_id || !type || !amount) return { code: -1, msg: '缺少必要参数' }
-  if (role !== 'head_teacher' && role !== 'committee') return { code: -1, msg: 'NO_PERMISSION' }
+  if (role !== 'admin' && role !== 'head_teacher' && role !== 'committee') return { code: -1, msg: 'NO_PERMISSION' }
 
   const now = new Date()
   const result = await db.collection('fee_records').add({
@@ -61,7 +61,7 @@ async function recordAdd(event, openid, role) {
 async function recordDelete(event, openid, role) {
   const { record_id, class_id } = event
   if (!record_id) return { code: -1, msg: '缺少record_id' }
-  if (role !== 'head_teacher' && role !== 'committee') return { code: -1, msg: 'NO_PERMISSION' }
+  if (role !== 'admin' && role !== 'head_teacher' && role !== 'committee') return { code: -1, msg: 'NO_PERMISSION' }
 
   await db.collection('fee_records').doc(record_id).remove()
   return { code: 0, msg: '已删除' }
@@ -105,7 +105,7 @@ async function recordList(event, openid) {
 async function collectionCreate(event, openid, role) {
   const { class_id, title, amount_per_student, deadline, note } = event
   if (!class_id || !title || !amount_per_student) return { code: -1, msg: '缺少必要参数' }
-  if (role !== 'head_teacher' && role !== 'committee') return { code: -1, msg: 'NO_PERMISSION' }
+  if (role !== 'admin' && role !== 'head_teacher' && role !== 'committee') return { code: -1, msg: 'NO_PERMISSION' }
 
   const now = new Date()
   const collResult = await db.collection('fee_collections').add({
@@ -168,7 +168,7 @@ async function collectionList(event, openid) {
 async function paymentMark(event, openid, role) {
   const { payment_ids, status, class_id } = event
   if (!payment_ids || !Array.isArray(payment_ids)) return { code: -1, msg: '缺少payment_ids' }
-  if (role !== 'head_teacher' && role !== 'committee') return { code: -1, msg: 'NO_PERMISSION' }
+  if (role !== 'admin' && role !== 'head_teacher' && role !== 'committee') return { code: -1, msg: 'NO_PERMISSION' }
 
   const updateData = status === 'paid'
     ? { status: 'paid', paid_at: new Date() }

@@ -32,7 +32,7 @@ async function getMemberRole(classId, openid) {
 
 async function isManager(classId, openid) {
   const role = await getMemberRole(classId, openid)
-  return role === 'head_teacher' || role === 'committee'
+  return role === 'admin' || role === 'head_teacher' || role === 'committee'
 }
 
 // 创建活动

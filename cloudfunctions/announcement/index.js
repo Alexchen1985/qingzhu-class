@@ -51,7 +51,7 @@ async function handlePublish(openid, event) {
 
   let type, approve_status
 
-  if (role === 'head_teacher') {
+  if (role === 'admin' || role === 'head_teacher') {
     type = 'official'
     approve_status = 'approved'
   } else if (role === 'teacher') {
@@ -107,7 +107,7 @@ async function handleList(openid, event) {
     .get()
 
   const role = memberRes.data.length > 0 ? memberRes.data[0].role : 'parent'
-  const isManager = role === 'head_teacher' || role === 'committee'
+  const isManager = role === 'admin' || role === 'head_teacher' || role === 'committee'
 
   // 构建查询条件
   let query = { class_id }
@@ -217,7 +217,7 @@ async function handleStats(openid, event) {
     .get()
 
   const role = memberRes.data.length > 0 ? memberRes.data[0].role : 'parent'
-  const isManager = role === 'head_teacher' || role === 'committee'
+  const isManager = role === 'admin' || role === 'head_teacher' || role === 'committee'
 
   const result = {
     read_count: readRes.data.length,
@@ -250,8 +250,8 @@ async function handleApprove(openid, event) {
     .where({ class_id: announcement.class_id, openid, status: 'active' })
     .get()
 
-  if (memberRes.data.length === 0 || memberRes.data[0].role !== 'head_teacher') {
-    return { code: -1, message: '仅班主任可审批', data: null }
+  if (memberRes.data.length === 0 || (memberRes.data[0].role !== 'admin' && memberRes.data[0].role !== 'head_teacher')) {
+    return { code: -1, message: '仅管理员和班主任可审批', data: null }
   }
 
   // 更新审批状态

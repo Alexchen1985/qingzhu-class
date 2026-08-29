@@ -26,7 +26,7 @@ async function isManager(classId, openid) {
   const res = await db.collection('class_members')
     .where({ class_id: classId, openid, status: 'active' }).limit(1).get()
   const role = res.data.length > 0 ? res.data[0].role : null
-  return role === 'head_teacher' || role === 'committee'
+  return role === 'admin' || role === 'head_teacher' || role === 'committee'
 }
 
 // 获取某周排班
