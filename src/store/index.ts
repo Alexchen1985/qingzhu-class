@@ -330,6 +330,17 @@ export function setWeekDuty(weekStart: string, assignments: DutyAssignment[]): v
 
 // ---- 用户 ----
 
+/** 角色英文→中文映射 */
+export function getRoleLabel(role: string): string {
+  const map: Record<string, string> = {
+    head_teacher: '班主任',
+    teacher: '任课老师',
+    committee: '家委',
+    parent: '家长',
+  }
+  return map[role] || role
+}
+
 export function getProfile(): UserProfile {
   return getStorage<UserProfile>(KEYS.profile, DEFAULT_PROFILE)
 }

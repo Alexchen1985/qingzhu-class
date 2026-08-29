@@ -20,6 +20,7 @@ import {
   getActivities,
   getFinanceSummary,
   getProfile,
+  getRoleLabel,
 } from '@/store'
 import type { Notice, Activity } from '@/store/types'
 
@@ -42,7 +43,7 @@ const IndexPage = () => {
     const profile = getProfile()
     setStudentName(profile.studentName)
     setClassName(profile.className || '青竹班')
-    setRole(profile.role || '家长')
+    setRole(getRoleLabel(profile.role) || '家长')
   }, [])
 
   useDidShow(() => {
