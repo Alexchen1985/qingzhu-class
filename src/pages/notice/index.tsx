@@ -235,7 +235,7 @@ const NoticePage = () => {
                     {typeConfig.label}
                   </Badge>
                   {item.is_pinned && (
-                    <Badge className="bg-orange-100 text-orange-600 text-xs">
+                    <Badge className="bg-[#E0F5ED] text-[#4DB892] text-xs">
                       置顶
                     </Badge>
                   )}
@@ -334,19 +334,19 @@ const NoticePage = () => {
 
   if (loading) {
     return (
-      <View className="flex items-center justify-center min-h-screen bg-orange-50">
+      <View className="flex items-center justify-center min-h-screen bg-[#F0F8F4]">
         <Text className="text-gray-500">加载中...</Text>
       </View>
     )
   }
 
   return (
-    <View className="min-h-full bg-orange-50 pb-6">
+    <View className="min-h-full bg-[#F0F8F4] pb-6">
       <View className="px-4 pt-4 space-y-3">
         {/* 发布按钮 */}
         {canPublish && (
           <Button
-            className="w-full bg-orange-500 text-white"
+            className="w-full bg-[#F0F8F4]0 text-white"
             onClick={() => setShowAddDialog(true)}
           >
             <Plus size={16} color="#fff" />
@@ -436,7 +436,7 @@ const NoticePage = () => {
                 </View>
               )}
               <Button
-                className="w-full bg-orange-500 text-white"
+                className="w-full bg-[#F0F8F4]0 text-white"
                 disabled={publishing}
                 onClick={handlePublish}
               >

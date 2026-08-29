@@ -155,7 +155,7 @@ export default function FinancePage() {
   return (
     <View className="min-h-screen bg-gray-50 pb-6">
       {/* Header */}
-      <View className="bg-gradient-to-r from-orange-500 to-orange-400 px-4 pt-8 pb-8">
+      <View className="bg-gradient-to-r from-[#5EC4A0] to-[#7DD4B4] px-4 pt-8 pb-8">
         <View className="flex items-center justify-between mb-4">
           <Text className="block text-white text-xl font-bold">班费管理</Text>
           {isManager && (
@@ -258,7 +258,7 @@ export default function FinancePage() {
           <TabsContent value="collections" className="mt-3">
             <ScrollView scrollY className="h-[calc(100vh-420px)] px-4">
               <View className="mb-3">
-                <Button size="sm" className="bg-orange-500 text-white" onClick={() => setShowAddCollection(true)}>
+                <Button size="sm" className="bg-[#F0F8F4]0 text-white" onClick={() => setShowAddCollection(true)}>
                   <Plus size={14} className="mr-1" color="#fff" />
                   <Text className="text-sm text-white">新建收费项目</Text>
                 </Button>
@@ -274,7 +274,7 @@ export default function FinancePage() {
                       <CardContent className="p-4">
                         <View className="flex items-start justify-between mb-2">
                           <Text className="block text-base font-bold text-gray-800">{coll.title}</Text>
-                          <Text className="text-sm font-medium text-orange-600">{formatAmount(coll.amount_per_student)}/人</Text>
+                          <Text className="text-sm font-medium text-[#4DB892]">{formatAmount(coll.amount_per_student)}/人</Text>
                         </View>
                         {coll.note ? <Text className="block text-sm text-gray-500 mb-2">{coll.note}</Text> : null}
                         <View className="flex gap-4 mb-3">
@@ -357,7 +357,7 @@ export default function FinancePage() {
                 />
               </View>
             </View>
-            <Button className="w-full bg-orange-500 text-white mt-4" onClick={handleAddRecord}>
+            <Button className="w-full bg-[#F0F8F4]0 text-white mt-4" onClick={handleAddRecord}>
               <Text className="text-white">确认记录</Text>
             </Button>
           </View>
@@ -405,7 +405,7 @@ export default function FinancePage() {
                 />
               </View>
             </View>
-            <Button className="w-full bg-orange-500 text-white mt-4" onClick={handleCreateCollection}>
+            <Button className="w-full bg-[#F0F8F4]0 text-white mt-4" onClick={handleCreateCollection}>
               <Text className="text-white">创建</Text>
             </Button>
           </View>

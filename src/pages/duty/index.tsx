@@ -128,7 +128,7 @@ export default function DutyPage() {
   return (
     <View className="min-h-screen bg-gray-50 pb-6">
       {/* Header */}
-      <View className="bg-gradient-to-r from-orange-500 to-orange-400 px-4 pt-8 pb-6">
+      <View className="bg-gradient-to-r from-[#5EC4A0] to-[#7DD4B4] px-4 pt-8 pb-6">
         <View className="flex items-center justify-between mb-4">
           <View>
             <Text className="block text-white text-xl font-bold">值日排班</Text>
@@ -175,28 +175,28 @@ export default function DutyPage() {
               const isToday = date === formatDate(new Date())
 
               return (
-                <Card key={date} className={`overflow-hidden ${isMyDuty ? 'ring-2 ring-orange-400' : ''}`}>
+                <Card key={date} className={`overflow-hidden ${isMyDuty ? 'ring-2 ring-[#7DD4B4]' : ''}`}>
                   <CardContent className="p-4">
                     <View className="flex items-center">
                       <View className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center mr-3 ${
-                        isToday ? 'bg-orange-500' : isMyDuty ? 'bg-orange-50' : 'bg-gray-100'
+                        isToday ? 'bg-[#F0F8F4]0' : isMyDuty ? 'bg-[#F0F8F4]' : 'bg-gray-100'
                       }`}
                       >
                         <Text className={`text-xs ${isToday ? 'text-white text-opacity-80' : 'text-gray-400'}`}>{weekday}</Text>
-                        <Text className={`text-lg font-bold ${isToday ? 'text-white' : isMyDuty ? 'text-orange-600' : 'text-gray-700'}`}>{dayNum}</Text>
+                        <Text className={`text-lg font-bold ${isToday ? 'text-white' : isMyDuty ? 'text-[#4DB892]' : 'text-gray-700'}`}>{dayNum}</Text>
                       </View>
                       <View className="flex-1">
                         {daySchedule.length > 0 ? (
                           <View>
                             <View className="flex items-center">
-                              <Users size={14} className="mr-2" color="#F97316" />
+                              <Users size={14} className="mr-2" color="#5EC4A0" />
                               <Text className="text-sm font-medium text-gray-800">
                                 {daySchedule.map(s => s.student_name).join('、')}
                               </Text>
                               {isMyDuty && (
-                                <View className="ml-2 flex items-center bg-orange-50 px-2 py-1 rounded-full">
-                                  <Star size={12} className="mr-1" color="#F97316" />
-                                  <Text className="text-xs text-orange-600">我的值日</Text>
+                                <View className="ml-2 flex items-center bg-[#F0F8F4] px-2 py-1 rounded-full">
+                                  <Star size={12} className="mr-1" color="#5EC4A0" />
+                                  <Text className="text-xs text-[#4DB892]">我的值日</Text>
                                 </View>
                               )}
                             </View>
@@ -242,7 +242,7 @@ export default function DutyPage() {
               })}
             </View>
           </ScrollView>
-          <Button className="w-full bg-orange-500 text-white mt-4" onClick={handleBatchSet}>
+          <Button className="w-full bg-[#F0F8F4]0 text-white mt-4" onClick={handleBatchSet}>
             <Text className="text-white">保存排班</Text>
           </Button>
         </DialogContent>

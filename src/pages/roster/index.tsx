@@ -134,7 +134,7 @@ export default function RosterPage() {
       <View className="bg-white px-4 py-3 mb-3">
         <View className="flex items-center justify-between">
           <View className="flex items-center gap-2">
-            <Users size={20} color="#F97316" />
+            <Users size={20} color="#5EC4A0" />
             <Text className="text-lg font-bold text-gray-800">家长名单</Text>
           </View>
           <Text className="text-sm text-gray-500">
@@ -164,11 +164,11 @@ export default function RosterPage() {
           className="flex-1 flex items-center justify-center gap-2"
           onClick={() => setShowImport(true)}
         >
-          <Upload size={16} color="#F97316" />
+          <Upload size={16} color="#5EC4A0" />
           <Text>批量导入</Text>
         </Button>
         <Button
-          className="flex-1 flex items-center justify-center gap-2 bg-orange-500"
+          className="flex-1 flex items-center justify-center gap-2 bg-[#F0F8F4]0"
           onClick={() => setShowAdd(true)}
         >
           <Plus size={16} color="#fff" />
@@ -256,7 +256,7 @@ export default function RosterPage() {
                 关闭
               </Button>
               <Button
-                className="flex-1 bg-orange-500"
+                className="flex-1 bg-[#F0F8F4]0"
                 disabled={importing}
                 onClick={handleImport}
               >
@@ -323,7 +323,7 @@ export default function RosterPage() {
               <Button variant="outline" className="flex-1" onClick={() => { setShowAdd(false); resetAddForm() }}>
                 取消
               </Button>
-              <Button className="flex-1 bg-orange-500" onClick={handleAdd}>
+              <Button className="flex-1 bg-[#F0F8F4]0" onClick={handleAdd}>
                 添加
               </Button>
             </View>

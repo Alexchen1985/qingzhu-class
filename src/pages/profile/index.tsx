@@ -110,9 +110,9 @@ const ProfilePage = () => {
   }
 
   return (
-    <View className="min-h-full bg-orange-50 pb-6">
+    <View className="min-h-full bg-[#F0F8F4] pb-6">
       {/* 头部 */}
-      <View className="bg-gradient-to-r from-orange-500 to-orange-400 px-4 pt-8 pb-10">
+      <View className="bg-gradient-to-r from-[#5EC4A0] to-[#7DD4B4] px-4 pt-8 pb-10">
         {/* 班级 Logo */}
         <View className="flex justify-center mb-4">
           <Image
@@ -122,17 +122,17 @@ const ProfilePage = () => {
           />
         </View>
         <View className="flex items-center gap-3">
-          <View className="w-16 h-16 rounded-full bg-orange-300 flex items-center justify-center">
+          <View className="w-16 h-16 rounded-full bg-[#A0E4CC] flex items-center justify-center">
             <User size={32} color="#fff" />
           </View>
           <View className="flex-1">
             <Text className="block text-lg font-bold text-white">
               {currentClass?.parentName || '家长'}
             </Text>
-            <Text className="block text-sm text-orange-100">
+            <Text className="block text-sm text-[#E0F5ED]">
               {currentClass?.studentName ? `${currentClass.studentName} 的家长` : '未设置学生信息'}
             </Text>
-            <Badge className="mt-1 bg-orange-300 text-white text-xs">
+            <Badge className="mt-1 bg-[#A0E4CC] text-white text-xs">
               {roleLabel}
             </Badge>
           </View>
@@ -145,15 +145,15 @@ const ProfilePage = () => {
           <CardContent className="p-4">
             <View className="flex items-center justify-between mb-3">
               <View className="flex items-center gap-2">
-                <School size={16} color="#F97316" />
+                <School size={16} color="#5EC4A0" />
                 <Text className="text-base font-semibold text-gray-800">
                   当前班级
                 </Text>
               </View>
               {loginData.classes.length > 1 && (
                 <Button variant="ghost" size="sm" onClick={() => setShowSwitchDialog(true)}>
-                  <Text className="text-xs text-orange-500">切换班级</Text>
-                  <ChevronRight size={14} color="#F97316" />
+                  <Text className="text-xs text-[#5EC4A0]">切换班级</Text>
+                  <ChevronRight size={14} color="#5EC4A0" />
                 </Button>
               )}
             </View>
@@ -192,7 +192,7 @@ const ProfilePage = () => {
             ) : (
               <View className="py-4">
                 <Text className="text-sm text-gray-400 text-center block">暂未加入班级</Text>
-                <Button className="w-full mt-3 bg-orange-500 text-white" onClick={handleGoOnboarding}>
+                <Button className="w-full mt-3 bg-[#F0F8F4]0 text-white" onClick={handleGoOnboarding}>
                   创建/加入班级
                 </Button>
               </View>
@@ -209,7 +209,7 @@ const ProfilePage = () => {
                 onClick={() => setShowCodesDialog(true)}
               >
                 <View className="flex items-center gap-2">
-                  <Shield size={16} color="#F97316" />
+                  <Shield size={16} color="#5EC4A0" />
                   <View>
                     <Text className="text-sm font-medium text-gray-800 block">
                       班级邀请码
@@ -234,7 +234,7 @@ const ProfilePage = () => {
                 onClick={() => Taro.navigateTo({ url: '/pages/roster/index' })}
               >
                 <View className="flex items-center gap-2">
-                  <Users size={16} color="#F97316" />
+                  <Users size={16} color="#5EC4A0" />
                   <View>
                     <Text className="text-sm font-medium text-gray-800 block">
                       家长名单管理
@@ -261,8 +261,8 @@ const ProfilePage = () => {
                 className="flex items-center gap-3 py-3"
                 onClick={() => Taro.switchTab({ url: '/pages/notice/index' })}
               >
-                <View className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center">
-                  <Megaphone size={16} color="#F97316" />
+                <View className="w-9 h-9 rounded-xl bg-[#F0F8F4] flex items-center justify-center">
+                  <Megaphone size={16} color="#5EC4A0" />
                 </View>
                 <Text className="text-sm text-gray-700 flex-1">班级公告</Text>
                 <ChevronRight size={16} color="#9CA3AF" />
@@ -283,8 +283,8 @@ const ProfilePage = () => {
                 className="flex items-center gap-3 py-3"
                 onClick={() => Taro.navigateTo({ url: '/pages/duty/index' })}
               >
-                <View className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center">
-                  <CalendarDays size={16} color="#F97316" />
+                <View className="w-9 h-9 rounded-xl bg-[#F0F8F4] flex items-center justify-center">
+                  <CalendarDays size={16} color="#5EC4A0" />
                 </View>
                 <Text className="text-sm text-gray-700 flex-1">值日排班</Text>
                 <ChevronRight size={16} color="#9CA3AF" />
@@ -320,7 +320,7 @@ const ProfilePage = () => {
                   <View
                     key={cls.member._id || cls.member.class_id}
                     className={`p-3 rounded-xl flex items-center justify-between ${
-                      isCurrent ? 'bg-orange-50 border border-orange-200' : 'bg-gray-50'
+                      isCurrent ? 'bg-[#F0F8F4] border border-[#B8E8D4]' : 'bg-gray-50'
                     }`}
                     onClick={() => !isCurrent && handleSwitchClass(cls)}
                   >
@@ -333,9 +333,9 @@ const ProfilePage = () => {
                       </Text>
                     </View>
                     {isCurrent ? (
-                      <Badge className="bg-orange-100 text-orange-600 text-xs">当前</Badge>
+                      <Badge className="bg-[#E0F5ED] text-[#4DB892] text-xs">当前</Badge>
                     ) : (
-                      <Text className="text-xs text-orange-500">切换</Text>
+                      <Text className="text-xs text-[#5EC4A0]">切换</Text>
                     )}
                   </View>
                 )
@@ -364,7 +364,7 @@ const ProfilePage = () => {
                       <Text className="block text-sm font-medium text-gray-700">
                         {cls.className}
                       </Text>
-                      <View className="p-3 bg-orange-50 rounded-xl flex items-center justify-between">
+                      <View className="p-3 bg-[#F0F8F4] rounded-xl flex items-center justify-between">
                         <View>
                           <Text className="block text-sm text-gray-700">家长邀请码</Text>
                           <Text className="block text-xs text-gray-400 mt-1">发给家长群</Text>

@@ -155,7 +155,7 @@ export default function ActivityPage() {
   return (
     <View className="min-h-screen bg-gray-50 pb-6">
       {/* Header */}
-      <View className="bg-gradient-to-r from-orange-500 to-orange-400 px-4 pt-8 pb-6">
+      <View className="bg-gradient-to-r from-[#5EC4A0] to-[#7DD4B4] px-4 pt-8 pb-6">
         <View className="flex items-center justify-between">
           <View>
             <Text className="block text-white text-xl font-bold">活动报名</Text>
@@ -221,7 +221,7 @@ export default function ActivityPage() {
                       <View className="mb-3">
                         <View className="flex justify-between mb-1">
                           <Text className="text-xs text-gray-500">报名进度</Text>
-                          <Text className="text-xs font-medium text-orange-600">
+                          <Text className="text-xs font-medium text-[#4DB892]">
                             {activity.current_count}/{activity.max_participants}
                           </Text>
                         </View>
@@ -231,7 +231,7 @@ export default function ActivityPage() {
 
                     <View className="flex gap-2">
                       {activity.status === 'open' && !activity.is_signed_up && (
-                        <Button size="sm" className="flex-1 bg-orange-500 text-white"
+                        <Button size="sm" className="flex-1 bg-[#F0F8F4]0 text-white"
                           onClick={() => { setSelectedActivity(activity); setShowSignup(true) }}
                         >
                           <Text className="text-sm text-white">我要报名</Text>
@@ -334,7 +334,7 @@ export default function ActivityPage() {
                 />
               </View>
             </View>
-            <Button className="w-full bg-orange-500 text-white mt-4" onClick={handleCreate}>
+            <Button className="w-full bg-[#F0F8F4]0 text-white mt-4" onClick={handleCreate}>
               <Text className="text-white">发布活动</Text>
             </Button>
           </View>
@@ -375,7 +375,7 @@ export default function ActivityPage() {
                 />
               </View>
             </View>
-            <Button className="w-full bg-orange-500 text-white mt-4" onClick={handleSignup}>
+            <Button className="w-full bg-[#F0F8F4]0 text-white mt-4" onClick={handleSignup}>
               <Text className="text-white">确认报名</Text>
             </Button>
           </View>
@@ -400,7 +400,7 @@ export default function ActivityPage() {
                     <Text className="block text-sm font-medium text-gray-800">{s.student_name}</Text>
                     {s.contact ? <Text className="block text-xs text-gray-500">{s.contact}</Text> : null}
                   </View>
-                  {s.note ? <Text className="text-xs text-orange-500 ml-2">{s.note}</Text> : null}
+                  {s.note ? <Text className="text-xs text-[#5EC4A0] ml-2">{s.note}</Text> : null}
                 </View>
               ))}
             </View>

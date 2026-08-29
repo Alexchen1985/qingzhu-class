@@ -152,7 +152,7 @@ const OnboardingPage = () => {
   // 创建成功后的展示
   if (createResult) {
     return (
-      <View className="min-h-full bg-orange-50 px-4 pt-8">
+      <View className="min-h-full bg-[#F0F8F4] px-4 pt-8">
         <View className="flex flex-col items-center mb-6">
           <View className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mb-3">
             <Check size={32} color="#10B981" />
@@ -169,13 +169,13 @@ const OnboardingPage = () => {
               邀请码（分享给对应角色）
             </Text>
             <View className="space-y-3">
-              <View className="flex items-center justify-between p-3 bg-orange-50 rounded-xl">
+              <View className="flex items-center justify-between p-3 bg-[#F0F8F4] rounded-xl">
                 <View>
                   <Text className="block text-sm font-medium text-gray-700">家长邀请码</Text>
                   <Text className="block text-xs text-gray-400 mt-1">发给家长群</Text>
                 </View>
                 <View className="flex items-center gap-2">
-                  <Text className="text-lg font-bold text-orange-500">{createResult.classInfo.invite_code}</Text>
+                  <Text className="text-lg font-bold text-[#5EC4A0]">{createResult.classInfo.invite_code}</Text>
                   <Button variant="ghost" size="sm" onClick={() => copyCode(createResult.classInfo.invite_code, 'parent')}>
                     <Copy size={14} color="#6B7280" />
                     <Text className="ml-1 text-xs text-gray-500">{copiedField === 'parent' ? '已复制' : '复制'}</Text>
@@ -213,7 +213,7 @@ const OnboardingPage = () => {
         </Card>
 
         <Button
-          className="w-full bg-orange-500 text-white"
+          className="w-full bg-[#F0F8F4]0 text-white"
           onClick={() => Taro.switchTab({ url: '/pages/index/index' })}
         >
           进入首页
@@ -223,10 +223,10 @@ const OnboardingPage = () => {
   }
 
   return (
-    <View className="min-h-full bg-orange-50 px-4 pt-8">
+    <View className="min-h-full bg-[#F0F8F4] px-4 pt-8">
       <View className="flex flex-col items-center mb-6">
-        <View className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center mb-3">
-          <GraduationCap size={32} color="#F97316" />
+        <View className="w-16 h-16 rounded-full bg-[#E0F5ED] flex items-center justify-center mb-3">
+          <GraduationCap size={32} color="#5EC4A0" />
         </View>
         <Text className="block text-xl font-bold text-gray-800">欢迎使用家委助手</Text>
         <Text className="block text-sm text-gray-500 mt-1">创建或加入班级开始使用</Text>
@@ -273,7 +273,7 @@ const OnboardingPage = () => {
                       <Input className="w-full bg-transparent" placeholder="如：父亲、母亲、祖父" value={relation} onInput={(e) => setRelation(e.detail.value)} />
                     </View>
                   </View>
-                  <Button className="w-full bg-orange-500 text-white" onClick={handleJoin} disabled={joining}>
+                  <Button className="w-full bg-[#F0F8F4]0 text-white" onClick={handleJoin} disabled={joining}>
                     <Users size={16} color="#fff" />
                     <Text className="ml-1 text-sm">{joining ? '加入中...' : '加入班级'}</Text>
                   </Button>
@@ -306,7 +306,7 @@ const OnboardingPage = () => {
                       <Input className="w-full bg-transparent" placeholder="如：三年级" value={grade} onInput={(e) => setGrade(e.detail.value)} />
                     </View>
                   </View>
-                  <Button className="w-full bg-orange-500 text-white" onClick={handleCreate} disabled={creating}>
+                  <Button className="w-full bg-[#F0F8F4]0 text-white" onClick={handleCreate} disabled={creating}>
                     <School size={16} color="#fff" />
                     <Text className="ml-1 text-sm">{creating ? '创建中...' : '创建班级'}</Text>
                   </Button>
