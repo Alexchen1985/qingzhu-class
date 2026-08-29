@@ -16,6 +16,8 @@ export const CLOUD_FUNCTIONS = {
   ACTIVITY: 'activity',
   FEE: 'fee',
   DUTY: 'duty',
+  UPDATE_PROFILE: 'updateProfile',
+  UPLOAD_AVATAR: 'uploadAvatar',
 } as const
 
 /** 数据库集合名称 */

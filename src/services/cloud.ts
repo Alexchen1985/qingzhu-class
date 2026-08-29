@@ -839,3 +839,24 @@ export async function getMyDuty(classId: string, studentName: string): Promise<C
   const result = await callFunction(CLOUD_FUNCTIONS.DUTY, { action: 'myDuty', class_id: classId, student_name: studentName })
   return result?.duties || []
 }
+
+// ========== Profile API ==========
+
+/** 更新个人信息 */
+export async function updateProfile(params: {
+  class_id: string
+  parent_name?: string
+  phone?: string
+  student_name?: string
+  relation?: string
+}): Promise<void> {
+  await callFunction(CLOUD_FUNCTIONS.UPDATE_PROFILE, params)
+}
+
+/** 更新头像 */
+export async function updateAvatar(params: {
+  class_id: string
+  avatar_url: string
+}): Promise<void> {
+  await callFunction(CLOUD_FUNCTIONS.UPLOAD_AVATAR, params)
+}

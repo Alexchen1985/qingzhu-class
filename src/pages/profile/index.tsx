@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   User,
   Shield,
@@ -19,8 +21,11 @@ import {
   Check,
   LogOut,
   Users,
+  Camera,
+  Pencil,
 } from 'lucide-react-taro'
 import { ROLE_LABELS } from '@/services/cloud-types'
+import { updateProfile, updateAvatar } from '@/services/cloud'
 import type { ClassRole, ClassMemberWithClass, CurrentClass } from '@/services/cloud-types'
 
 const STORAGE_KEY_LOGIN = 'app_login_result'
@@ -63,7 +68,16 @@ const ProfilePage = () => {
   const [currentClass, setCurrentClass] = useState<CurrentClass | null>(null)
   const [showSwitchDialog, setShowSwitchDialog] = useState(false)
   const [showCodesDialog, setShowCodesDialog] = useState(false)
+  const [showEditDialog, setShowEditDialog] = useState(false)
   const [copiedField, setCopiedField] = useState('')
+  const [uploading, setUploading] = useState(false)
+
+  // 编辑表单
+  const [editParentName, setEditParentName] = useState('')
+  const [editPhone, setEditPhone] = useState('')
+  const [editStudentName, setEditStudentName] = useState('')
+  const [editRelation, setEditRelation] = useState('')
+  const [saving, setSaving] = useState(false)
 
   const loadData = useCallback(() => {
     const data = getLoginData()
@@ -106,6 +120,104 @@ const ProfilePage = () => {
     })
   }
 
+  const handleOpenEdit = () => {
+    if (!currentClass) return
+    setEditParentName(currentClass.parentName || '')
+    setEditPhone(currentClass.phone || '')
+    setEditStudentName(currentClass.studentName || '')
+    setEditRelation(currentClass.relation || '')
+    setShowEditDialog(true)
+  }
+
+  const handleSaveProfile = async () => {
+    if (!currentClass) return
+    if (!editParentName.trim() || !editPhone.trim()) {
+      Taro.showToast({ title: '姓名和手机号为必填项', icon: 'none' })
+      return
+    }
+    setSaving(true)
+    try {
+      await updateProfile({
+        class_id: currentClass.classId,
+        parent_name: editParentName.trim(),
+        phone: editPhone.trim(),
+        student_name: editStudentName.trim(),
+        relation: editRelation.trim(),
+      })
+      // 更新本地缓存
+      const cc: CurrentClass = {
+        ...currentClass,
+        parentName: editParentName.trim(),
+        phone: editPhone.trim(),
+        studentName: editStudentName.trim(),
+        relation: editRelation.trim(),
+      }
+      Taro.setStorageSync(STORAGE_KEY_CURRENT_CLASS, cc)
+      setCurrentClass(cc)
+      // 更新登录缓存
+      const data = getLoginData()
+      data.classes = data.classes.map((c) => {
+        if (c.member.class_id === currentClass.classId) {
+          return {
+            ...c,
+            member: {
+              ...c.member,
+              parent_name: editParentName.trim(),
+              phone: editPhone.trim(),
+              student_name: editStudentName.trim(),
+              relation: editRelation.trim(),
+            },
+          }
+        }
+        return c
+      })
+      Taro.setStorageSync(STORAGE_KEY_LOGIN, data)
+      setLoginData(data)
+      setShowEditDialog(false)
+      Taro.showToast({ title: '保存成功', icon: 'success' })
+    } catch (err) {
+      Taro.showToast({ title: (err as Error).message || '保存失败', icon: 'none' })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleChooseAvatar = async () => {
+    if (!currentClass) return
+    try {
+      // 选择图片
+      const res = await Taro.chooseImage({
+        count: 1,
+        sizeType: ['compressed'],
+        sourceType: ['album', 'camera'],
+      })
+      const tempFilePath = res.tempFilePaths[0]
+      setUploading(true)
+      // 上传到云存储
+      const uploadRes = await Taro.cloud.uploadFile({
+        cloudPath: `avatars/${currentClass.classId}_${Date.now()}.jpg`,
+        filePath: tempFilePath,
+      })
+      // 更新数据库
+      await updateAvatar({
+        class_id: currentClass.classId,
+        avatar_url: uploadRes.fileID,
+      })
+      // 更新本地缓存
+      const cc: CurrentClass = {
+        ...currentClass,
+        avatarUrl: uploadRes.fileID,
+      }
+      Taro.setStorageSync(STORAGE_KEY_CURRENT_CLASS, cc)
+      setCurrentClass(cc)
+      Taro.showToast({ title: '头像更新成功', icon: 'success' })
+    } catch (err) {
+      Taro.showToast({ title: (err as Error).message || '头像上传失败', icon: 'none' })
+    } finally {
+      setUploading(false)
+    }
+  }
+
   const handleGoOnboarding = () => {
     Taro.navigateTo({ url: '/pages/onboarding/index' })
   }
@@ -123,13 +235,32 @@ const ProfilePage = () => {
           />
         </View>
         <View className="flex items-center gap-3">
-          <View className="w-16 h-16 rounded-full bg-[#A0E4CC] flex items-center justify-center">
-            <User size={32} color="#fff" />
+          {/* 头像区域 */}
+          <View className="relative" onClick={handleChooseAvatar}>
+            {currentClass?.avatarUrl ? (
+              <Image
+                src={currentClass.avatarUrl}
+                mode="aspectFill"
+                className="w-16 h-16 rounded-full bg-[#A0E4CC] shadow-lg"
+              />
+            ) : (
+              <View className="w-16 h-16 rounded-full bg-[#A0E4CC] flex items-center justify-center shadow-lg">
+                <User size={32} color="#fff" />
+              </View>
+            )}
+            <View className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-white flex items-center justify-center shadow">
+              <Camera size={12} color="#5EC4A0" />
+            </View>
           </View>
           <View className="flex-1">
-            <Text className="block text-lg font-bold text-white">
-              {currentClass?.parentName || '家长'}
-            </Text>
+            <View className="flex items-center gap-2">
+              <Text className="block text-lg font-bold text-white">
+                {currentClass?.parentName || '家长'}
+              </Text>
+              <View onClick={handleOpenEdit}>
+                <Pencil size={14} color="#fff" />
+              </View>
+            </View>
             <Text className="block text-sm text-[#E0F5ED]">
               {currentClass?.studentName ? `${currentClass.studentName} 的家长` : '未设置学生信息'}
             </Text>
@@ -381,6 +512,81 @@ const ProfilePage = () => {
               <Text className="block text-xs text-gray-400 text-center mt-2">
                 提示：完整邀请码请在微信开发者工具中查看云数据库
               </Text>
+            </View>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      {/* 编辑个人信息弹窗 */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>编辑个人信息</DialogTitle>
+            <DialogDescription>姓名和手机号为必填项</DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="max-h-96">
+            <View className="space-y-4 p-1">
+              <View>
+                <Label className="text-sm text-gray-700 mb-1 block">姓名 *</Label>
+                <View className="bg-gray-50 rounded-xl px-3 py-2">
+                  <Input
+                    className="w-full bg-transparent"
+                    placeholder="请输入家长/教师姓名"
+                    value={editParentName}
+                    onInput={(e) => setEditParentName(e.detail.value)}
+                  />
+                </View>
+              </View>
+              <View>
+                <Label className="text-sm text-gray-700 mb-1 block">手机号 *</Label>
+                <View className="bg-gray-50 rounded-xl px-3 py-2">
+                  <Input
+                    className="w-full bg-transparent"
+                    placeholder="请输入手机号"
+                    type="number"
+                    value={editPhone}
+                    onInput={(e) => setEditPhone(e.detail.value)}
+                    maxlength={11}
+                  />
+                </View>
+              </View>
+              <View>
+                <Label className="text-sm text-gray-700 mb-1 block">学生姓名</Label>
+                <View className="bg-gray-50 rounded-xl px-3 py-2">
+                  <Input
+                    className="w-full bg-transparent"
+                    placeholder="请输入学生姓名（教师可不填）"
+                    value={editStudentName}
+                    onInput={(e) => setEditStudentName(e.detail.value)}
+                  />
+                </View>
+              </View>
+              <View>
+                <Label className="text-sm text-gray-700 mb-1 block">与学生关系</Label>
+                <View className="bg-gray-50 rounded-xl px-3 py-2">
+                  <Input
+                    className="w-full bg-transparent"
+                    placeholder="如：父亲、母亲、祖父（教师可不填）"
+                    value={editRelation}
+                    onInput={(e) => setEditRelation(e.detail.value)}
+                  />
+                </View>
+              </View>
+              <View className="flex gap-3 pt-2">
+                <Button
+                  className="flex-1 bg-gray-200 text-gray-700"
+                  onClick={() => setShowEditDialog(false)}
+                >
+                  取消
+                </Button>
+                <Button
+                  className="flex-1 bg-[#5EC4A0] text-white"
+                  onClick={handleSaveProfile}
+                  disabled={saving}
+                >
+                  {saving ? '保存中...' : '保存'}
+                </Button>
+              </View>
             </View>
           </ScrollArea>
         </DialogContent>

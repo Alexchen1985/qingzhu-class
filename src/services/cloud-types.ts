@@ -104,4 +104,5 @@ export interface CurrentClass {
   parentName: string
   phone: string
   relation: string
+  avatarUrl?: string
 }
