@@ -23,6 +23,7 @@ exports.main = async (event, context) => {
       case 'collectionCreate': return await collectionCreate(event, openid, role)
       case 'collectionList': return await collectionList(event, openid)
       case 'paymentMark': return await paymentMark(event, openid, role)
+      case 'paymentList': return await paymentList(event, openid)
       default: return { code: -1, msg: 'Unknown action: ' + action }
     }
   } catch (err) {
@@ -178,4 +179,16 @@ async function paymentMark(event, openid, role) {
     await db.collection('fee_payments').doc(pid).update({ data: updateData })
   }
   return { code: 0, msg: 'ok', data: { updated: payment_ids.length } }
+}
+
+// 获取缴费记录列表
+async function paymentList(event, openid) {
+  const { collection_id } = event
+  if (!collection_id) return { code: -1, msg: '缺少collection_id' }
+
+  const res = await db.collection('fee_payments')
+    .where({ collection_id, status: 'unpaid' })
+    .limit(200).get()
+
+  return { code: 0, data: { payments: res.data } }
 }

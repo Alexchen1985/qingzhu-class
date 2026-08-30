@@ -798,6 +798,14 @@ export async function markFeePayments(paymentIds: string[], status: 'paid' | 'un
   await callFunction(CLOUD_FUNCTIONS.FEE, { action: 'paymentMark', payment_ids: paymentIds, status, class_id: classId })
 }
 
+export async function getUnpaidPayments(collectionId: string): Promise<{ _id: string; student_name: string; amount: number }[]> {
+  const result = await callFunction<{ payments: { _id: string; student_name: string; amount: number }[] }>(
+    CLOUD_FUNCTIONS.FEE,
+    { action: 'paymentList', collection_id: collectionId }
+  )
+  return result?.payments || []
+}
+
 // ==================== Duty 值日排班 ====================
 
 export interface CloudDutySchedule {

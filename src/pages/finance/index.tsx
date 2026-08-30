@@ -17,7 +17,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Wallet, Plus, Trash2, TrendingUp, TrendingDown, ChevronDown, ChevronUp, Check, X } from 'lucide-react-taro'
 import {
   getFeeRecordList, addFeeRecord, deleteFeeRecord,
-  getFeeCollectionList, createFeeCollection, markPaymentStatus,
+  getFeeCollectionList, createFeeCollection, markFeePayments, getUnpaidPayments,
   type CloudFeeRecord, type CloudFeeCollection
 } from '@/services/cloud'
 import { getCurrentClassId, getUserRole } from '@/store'
@@ -40,7 +40,9 @@ export default function FinancePage() {
   // 标记缴费相关
   const [showMarkPayment, setShowMarkPayment] = useState(false)
   const [selectedCollection, setSelectedCollection] = useState<CloudFeeCollection | null>(null)
-  const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set())
+  const [unpaidPayments, setUnpaidPayments] = useState<{ _id: string; student_name: string; amount: number }[]>([])
+  const [selectedPaymentIds, setSelectedPaymentIds] = useState<Set<string>>(new Set())
+  const [loadingPayments, setLoadingPayments] = useState(false)
 
   const classId = getCurrentClassId()
   const role = getUserRole()
@@ -157,40 +159,50 @@ export default function FinancePage() {
   }
 
   // 打开标记缴费弹窗
-  const openMarkPaymentDialog = (coll: CloudFeeCollection) => {
+  const openMarkPaymentDialog = async (coll: CloudFeeCollection) => {
     setSelectedCollection(coll)
-    setSelectedStudents(new Set())
+    setSelectedPaymentIds(new Set())
+    setLoadingPayments(true)
+    try {
+      // 获取未缴费记录列表
+      const payments = await getUnpaidPayments(coll._id)
+      setUnpaidPayments(payments)
+    } catch (e) {
+      console.error(e)
+      Taro.showToast({ title: '获取缴费记录失败', icon: 'none' })
+    } finally {
+      setLoadingPayments(false)
+    }
     setShowMarkPayment(true)
   }
 
-  // 切换学生选中状态
-  const toggleStudentSelection = (studentName: string) => {
-    const next = new Set(selectedStudents)
-    if (next.has(studentName)) next.delete(studentName)
-    else next.add(studentName)
-    setSelectedStudents(next)
+  // 切换缴费记录选中状态
+  const togglePaymentSelection = (paymentId: string) => {
+    const next = new Set(selectedPaymentIds)
+    if (next.has(paymentId)) next.delete(paymentId)
+    else next.add(paymentId)
+    setSelectedPaymentIds(next)
   }
 
   // 全选/取消全选
   const toggleSelectAll = () => {
-    if (!selectedCollection) return
-    if (selectedStudents.size === selectedCollection.unpaid_students.length) {
-      setSelectedStudents(new Set())
+    if (selectedPaymentIds.size === unpaidPayments.length) {
+      setSelectedPaymentIds(new Set())
     } else {
-      setSelectedStudents(new Set(selectedCollection.unpaid_students))
+      setSelectedPaymentIds(new Set(unpaidPayments.map(p => p._id)))
     }
   }
 
   // 确认标记缴费
   const handleConfirmMarkPayment = async () => {
-    if (!selectedCollection || selectedStudents.size === 0) {
+    if (selectedPaymentIds.size === 0) {
       Taro.showToast({ title: '请选择学生', icon: 'none' }); return
     }
     try {
-      await markPaymentStatus(classId!, selectedCollection._id, Array.from(selectedStudents), 'paid')
-      Taro.showToast({ title: `已标记${selectedStudents.size}人缴费`, icon: 'success' })
+      await markFeePayments(Array.from(selectedPaymentIds), 'paid', classId!)
+      Taro.showToast({ title: `已标记${selectedPaymentIds.size}人缴费`, icon: 'success' })
       setShowMarkPayment(false)
-      setSelectedStudents(new Set())
+      setSelectedPaymentIds(new Set())
       loadData()
     } catch (e: unknown) {
       Taro.showToast({ title: (e as Error)?.message || '操作失败', icon: 'none' })
@@ -490,7 +502,7 @@ export default function FinancePage() {
           <DialogHeader>
             <DialogTitle><Text className="text-lg font-bold text-gray-800">标记缴费</Text></DialogTitle>
             <DialogDescription>
-              <Text className="text-sm text-gray-500">{selectedCollection?.title} - 未缴{selectedCollection?.unpaid_count}人</Text>
+              <Text className="text-sm text-gray-500">{selectedCollection?.title} - 未缴{unpaidPayments.length}人</Text>
             </DialogDescription>
           </DialogHeader>
           <View className="mt-3">
@@ -498,31 +510,42 @@ export default function FinancePage() {
             <View className="flex items-center justify-between py-2 border-b border-gray-100 mb-2">
               <View className="flex items-center gap-2">
                 <Checkbox
-                  checked={selectedStudents.size === (selectedCollection?.unpaid_students.length || 0) && selectedStudents.size > 0}
+                  checked={selectedPaymentIds.size === unpaidPayments.length && selectedPaymentIds.size > 0}
                   onCheckedChange={toggleSelectAll}
                 />
                 <Text className="block text-sm font-medium text-gray-700">全选</Text>
               </View>
-              <Text className="text-xs text-gray-500">已选{selectedStudents.size}人</Text>
+              <Text className="text-xs text-gray-500">已选{selectedPaymentIds.size}人</Text>
             </View>
-            {/* 学生列表 */}
-            <ScrollView scrollY className="h-64">
-              {selectedCollection?.unpaid_students.map(student => (
-                <View key={student} className="flex items-center justify-between py-2 border-b border-gray-50">
-                  <View className="flex items-center gap-2">
-                    <Checkbox
-                      checked={selectedStudents.has(student)}
-                      onCheckedChange={() => toggleStudentSelection(student)}
-                    />
-                    <Text className="block text-sm text-gray-700">{student}</Text>
+            {/* 缴费记录列表 */}
+            {loadingPayments ? (
+              <View className="py-8 text-center">
+                <Text className="block text-sm text-gray-400">加载中...</Text>
+              </View>
+            ) : unpaidPayments.length === 0 ? (
+              <View className="py-8 text-center">
+                <Text className="block text-sm text-gray-400">全部已缴费</Text>
+              </View>
+            ) : (
+              <ScrollView scrollY className="h-64">
+                {unpaidPayments.map(payment => (
+                  <View key={payment._id} className="flex items-center justify-between py-2 border-b border-gray-50">
+                    <View className="flex items-center gap-2">
+                      <Checkbox
+                        checked={selectedPaymentIds.has(payment._id)}
+                        onCheckedChange={() => togglePaymentSelection(payment._id)}
+                      />
+                      <Text className="block text-sm text-gray-700">{payment.student_name}</Text>
+                    </View>
+                    <Text className="text-xs text-gray-500">{formatAmount(payment.amount)}</Text>
                   </View>
-                </View>
-              ))}
-            </ScrollView>
+                ))}
+              </ScrollView>
+            )}
             {/* 确认按钮 */}
             <Button className="w-full bg-[#5EC4A0] text-white mt-4" onClick={handleConfirmMarkPayment}>
               <Check size={14} className="mr-1" color="#fff" />
-              <Text className="text-white">确认标记{selectedStudents.size}人已缴费</Text>
+              <Text className="text-white">确认标记{selectedPaymentIds.size}人已缴费</Text>
             </Button>
           </View>
         </DialogContent>
