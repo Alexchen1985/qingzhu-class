@@ -15,18 +15,14 @@ const STORAGE_KEY_CURRENT_CLASS = 'app_current_class'
 const STORAGE_KEY_PHONE = 'app_login_phone'
 
 const LoginPage = () => {
-  const [phone, setPhone] = useState('')
+  // 初始化时读取缓存的手机号
+  const [phone, setPhone] = useState(() => {
+    return Taro.getStorageSync(STORAGE_KEY_PHONE) || ''
+  })
   const [loading, setLoading] = useState(false)
 
-  // 页面加载时检查是否已登录，并记住手机号
+  // 页面加载时检查是否已登录
   useDidShow(() => {
-    // 记住上次登录的手机号
-    const savedPhone = Taro.getStorageSync(STORAGE_KEY_PHONE)
-    console.log('登录页 - 读取缓存手机号:', savedPhone)
-    if (savedPhone) {
-      setPhone(savedPhone)
-    }
-
     // 如果已登录，直接跳转到首页
     const classId = getCurrentClassId()
     if (classId) {
