@@ -137,7 +137,12 @@ const ProfilePage = () => {
       content: '退出后需要重新登录',
       success: (res) => {
         if (res.confirm) {
+          // 保留手机号缓存，清除其他登录信息
+          const savedPhone = Taro.getStorageSync('app_login_phone')
           Taro.clearStorageSync()
+          if (savedPhone) {
+            Taro.setStorageSync('app_login_phone', savedPhone)
+          }
           Taro.navigateTo({ url: '/pages/login/index' })
         }
       },
