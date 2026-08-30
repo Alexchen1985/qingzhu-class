@@ -9,6 +9,7 @@ import Taro, { useDidShow } from '@tarojs/taro'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -16,7 +17,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Wallet, Plus, Trash2, TrendingUp, TrendingDown, ChevronDown, ChevronUp, Check, X } from 'lucide-react-taro'
 import {
   getFeeRecordList, addFeeRecord, deleteFeeRecord,
-  getFeeCollectionList, createFeeCollection,
+  getFeeCollectionList, createFeeCollection, markPaymentStatus,
   type CloudFeeRecord, type CloudFeeCollection
 } from '@/services/cloud'
 import { getCurrentClassId, getUserRole } from '@/store'
@@ -36,6 +37,10 @@ export default function FinancePage() {
   const [recordForm, setRecordForm] = useState({ type: 'expense' as 'income' | 'expense', amount: '', purpose: '', handler_name: '', occurred_at: '' })
   const [collectionForm, setCollectionForm] = useState({ title: '', amount_per_student: '', deadline: '', note: '' })
   const [datePicker, setDatePicker] = useState('')
+  // 标记缴费相关
+  const [showMarkPayment, setShowMarkPayment] = useState(false)
+  const [selectedCollection, setSelectedCollection] = useState<CloudFeeCollection | null>(null)
+  const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set())
 
   const classId = getCurrentClassId()
   const role = getUserRole()
@@ -145,6 +150,47 @@ export default function FinancePage() {
       Taro.showToast({ title: `已创建，${result.student_count}名学生`, icon: 'success' })
       setShowAddCollection(false)
       setCollectionForm({ title: '', amount_per_student: '', deadline: '', note: '' })
+      loadData()
+    } catch (e: unknown) {
+      Taro.showToast({ title: (e as Error)?.message || '操作失败', icon: 'none' })
+    }
+  }
+
+  // 打开标记缴费弹窗
+  const openMarkPaymentDialog = (coll: CloudFeeCollection) => {
+    setSelectedCollection(coll)
+    setSelectedStudents(new Set())
+    setShowMarkPayment(true)
+  }
+
+  // 切换学生选中状态
+  const toggleStudentSelection = (studentName: string) => {
+    const next = new Set(selectedStudents)
+    if (next.has(studentName)) next.delete(studentName)
+    else next.add(studentName)
+    setSelectedStudents(next)
+  }
+
+  // 全选/取消全选
+  const toggleSelectAll = () => {
+    if (!selectedCollection) return
+    if (selectedStudents.size === selectedCollection.unpaid_students.length) {
+      setSelectedStudents(new Set())
+    } else {
+      setSelectedStudents(new Set(selectedCollection.unpaid_students))
+    }
+  }
+
+  // 确认标记缴费
+  const handleConfirmMarkPayment = async () => {
+    if (!selectedCollection || selectedStudents.size === 0) {
+      Taro.showToast({ title: '请选择学生', icon: 'none' }); return
+    }
+    try {
+      await markPaymentStatus(classId!, selectedCollection._id, Array.from(selectedStudents), 'paid')
+      Taro.showToast({ title: `已标记${selectedStudents.size}人缴费`, icon: 'success' })
+      setShowMarkPayment(false)
+      setSelectedStudents(new Set())
       loadData()
     } catch (e: unknown) {
       Taro.showToast({ title: (e as Error)?.message || '操作失败', icon: 'none' })
@@ -310,7 +356,11 @@ export default function FinancePage() {
                         {coll.unpaid_students.length > 0 && (
                           <View>
                             <Text className="block text-xs text-gray-400 mb-1">未缴名单：</Text>
-                            <Text className="block text-xs text-red-500">{coll.unpaid_students.join('、')}</Text>
+                            <Text className="block text-xs text-red-500 mb-3">{coll.unpaid_students.join('、')}</Text>
+                            <Button size="sm" className="bg-[#5EC4A0] text-white" onClick={() => openMarkPaymentDialog(coll)}>
+                              <Check size={12} className="mr-1" color="#fff" />
+                              <Text className="text-xs text-white">标记缴费</Text>
+                            </Button>
                           </View>
                         )}
                       </CardContent>
@@ -429,6 +479,50 @@ export default function FinancePage() {
             </View>
             <Button className="w-full bg-[#5EC4A0] text-white mt-4" onClick={handleCreateCollection}>
               <Text className="text-white">创建</Text>
+            </Button>
+          </View>
+        </DialogContent>
+      </Dialog>
+
+      {/* 标记缴费弹窗 */}
+      <Dialog open={showMarkPayment} onOpenChange={setShowMarkPayment}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle><Text className="text-lg font-bold text-gray-800">标记缴费</Text></DialogTitle>
+            <DialogDescription>
+              <Text className="text-sm text-gray-500">{selectedCollection?.title} - 未缴{selectedCollection?.unpaid_count}人</Text>
+            </DialogDescription>
+          </DialogHeader>
+          <View className="mt-3">
+            {/* 全选按钮 */}
+            <View className="flex items-center justify-between py-2 border-b border-gray-100 mb-2">
+              <View className="flex items-center gap-2">
+                <Checkbox
+                  checked={selectedStudents.size === (selectedCollection?.unpaid_students.length || 0) && selectedStudents.size > 0}
+                  onCheckedChange={toggleSelectAll}
+                />
+                <Text className="block text-sm font-medium text-gray-700">全选</Text>
+              </View>
+              <Text className="text-xs text-gray-500">已选{selectedStudents.size}人</Text>
+            </View>
+            {/* 学生列表 */}
+            <ScrollView scrollY className="h-64">
+              {selectedCollection?.unpaid_students.map(student => (
+                <View key={student} className="flex items-center justify-between py-2 border-b border-gray-50">
+                  <View className="flex items-center gap-2">
+                    <Checkbox
+                      checked={selectedStudents.has(student)}
+                      onCheckedChange={() => toggleStudentSelection(student)}
+                    />
+                    <Text className="block text-sm text-gray-700">{student}</Text>
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+            {/* 确认按钮 */}
+            <Button className="w-full bg-[#5EC4A0] text-white mt-4" onClick={handleConfirmMarkPayment}>
+              <Check size={14} className="mr-1" color="#fff" />
+              <Text className="text-white">确认标记{selectedStudents.size}人已缴费</Text>
             </Button>
           </View>
         </DialogContent>
