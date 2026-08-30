@@ -35,7 +35,9 @@ const IndexPage = () => {
 
   const loadData = useCallback(async () => {
     const classId = getCurrentClassId()
+    console.log('首页 - 读取 classId:', classId)
     if (!classId) {
+      console.log('首页 - classId 为空，不加载数据')
       setLoading(false)
       return
     }
@@ -63,6 +65,7 @@ const IndexPage = () => {
       
       // 从本地缓存获取班级和学生信息
       const currentClass = Taro.getStorageSync('app_current_class')
+      console.log('首页 - 读取 currentClass:', currentClass)
       if (currentClass) {
         setClassName(currentClass.className || '')
         setStudentName(currentClass.studentName || '')

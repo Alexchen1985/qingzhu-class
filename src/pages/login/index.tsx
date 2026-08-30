@@ -48,6 +48,7 @@ const LoginPage = () => {
       if (result.classes.length > 0) {
         const first = result.classes[0]
         console.log('登录成功，班级信息:', first)
+        console.log('class_id:', first.member.class_id)
         const cc: CurrentClass = {
           classId: first.member.class_id,
           className: first.className,
@@ -69,6 +70,7 @@ const LoginPage = () => {
           role: first.member.role as any,
         })
         console.log('已保存班级信息到缓存:', cc)
+        console.log('已保存 classId:', first.member.class_id)
       } else {
         // 没有班级信息，提示用户先加入班级
         Taro.showToast({ title: '该手机号未加入任何班级', icon: 'none', duration: 3000 })
