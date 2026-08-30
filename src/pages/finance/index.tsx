@@ -75,6 +75,15 @@ export default function FinancePage() {
 
   const formatAmount = (amount: number) => `¥${(amount / 100).toFixed(2)}`
 
+  const formatMonth = (month: string) => {
+    // 确保月份格式为 "2026-08" 而不是 "2026-8"
+    const parts = month.split('-')
+    if (parts.length === 2) {
+      return `${parts[0]}-${parts[1].padStart(2, '0')}`
+    }
+    return month
+  }
+
   const handleAddRecord = async () => {
     if (!recordForm.amount || parseInt(recordForm.amount) <= 0) {
       Taro.showToast({ title: '请输入有效金额', icon: 'none' }); return
@@ -214,7 +223,7 @@ export default function FinancePage() {
                     <Card key={month}>
                       <CardContent className="p-0">
                         <View className="flex items-center justify-between px-4 py-3" onClick={() => toggleMonth(month)}>
-                          <Text className="block text-sm font-medium text-gray-700">{month}</Text>
+                          <Text className="block text-sm font-medium text-gray-700">{formatMonth(month)}</Text>
                           <View className="flex items-center">
                             <Text className="text-xs text-gray-400 mr-2">{items.length}条</Text>
                             {isExpanded ? <ChevronUp size={16} color="#9CA3AF" /> : <ChevronDown size={16} color="#9CA3AF" />}
@@ -231,7 +240,7 @@ export default function FinancePage() {
                                 </View>
                                 <View className="flex-1">
                                   <Text className="block text-sm text-gray-800">{item.purpose || '未备注'}</Text>
-                                  <Text className="block text-xs text-gray-400">{item.occurred_at} · {item.handler_name}</Text>
+                                  <Text className="block text-xs text-gray-400">{item.occurred_at || '未知日期'} · {item.handler_name || '未知'}</Text>
                                 </View>
                                 <Text className={`text-sm font-medium ml-2 ${item.type === 'income' ? 'text-green-600' : 'text-red-500'}`}>
                                   {item.type === 'income' ? '+' : '-'}{formatAmount(item.amount)}
