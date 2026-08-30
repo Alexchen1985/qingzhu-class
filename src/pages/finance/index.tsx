@@ -4,7 +4,7 @@
  * teacher 角色禁止访问
  */
 import { useState, useCallback, useEffect } from 'react'
-import { View, Text, ScrollView } from '@tarojs/components'
+import { View, Text, ScrollView, Picker } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -35,6 +35,7 @@ export default function FinancePage() {
   const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set())
   const [recordForm, setRecordForm] = useState({ type: 'expense' as 'income' | 'expense', amount: '', purpose: '', handler_name: '', occurred_at: '' })
   const [collectionForm, setCollectionForm] = useState({ title: '', amount_per_student: '', deadline: '', note: '' })
+  const [datePicker, setDatePicker] = useState('')
 
   const classId = getCurrentClassId()
   const role = getUserRole()
@@ -76,10 +77,13 @@ export default function FinancePage() {
   const formatAmount = (amount: number) => `¥${(amount / 100).toFixed(2)}`
 
   const formatMonth = (month: string) => {
-    // 确保月份格式为 "2026-08" 而不是 "2026-8"
+    // 确保月份格式为 "2026-08" 而不是 "2026-8" 或 "2026-8-"
+    if (!month || month === '未知') return '未知月份'
     const parts = month.split('-')
-    if (parts.length === 2) {
-      return `${parts[0]}-${parts[1].padStart(2, '0')}`
+    if (parts.length >= 2) {
+      const year = parts[0]
+      const monthNum = parts[1].padStart(2, '0')
+      return `${year}-${monthNum}`
     }
     return month
   }
@@ -98,10 +102,17 @@ export default function FinancePage() {
       Taro.showToast({ title: '记录成功', icon: 'success' })
       setShowAddRecord(false)
       setRecordForm({ type: 'expense', amount: '', purpose: '', handler_name: '', occurred_at: '' })
+      setDatePicker('')
       loadData()
     } catch (e: unknown) {
       Taro.showToast({ title: (e as Error)?.message || '操作失败', icon: 'none' })
     }
+  }
+
+  const handleDateChange = (e: any) => {
+    const value = e.detail.value
+    setDatePicker(value)
+    setRecordForm({ ...recordForm, occurred_at: value })
   }
 
   const handleDeleteRecord = (recordId: string) => {
@@ -360,11 +371,13 @@ export default function FinancePage() {
             </View>
             <View>
               <Text className="block text-sm text-gray-600 mb-1">日期</Text>
-              <View className="bg-gray-50 rounded-xl px-4 py-3">
-                <Input className="w-full bg-transparent" placeholder="2024-10-15"
-                  value={recordForm.occurred_at} onInput={(e) => setRecordForm({ ...recordForm, occurred_at: e.detail.value })}
-                />
-              </View>
+              <Picker mode="date" value={datePicker} onChange={handleDateChange}>
+                <View className="bg-gray-50 rounded-xl px-4 py-3">
+                  <Text className="block text-sm">
+                    {datePicker || '选择日期'}
+                  </Text>
+                </View>
+              </Picker>
             </View>
             <Button className="w-full bg-[#5EC4A0] text-white mt-4" onClick={handleAddRecord}>
               <Text className="text-white">确认记录</Text>
