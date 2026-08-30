@@ -29,6 +29,7 @@ const OnboardingPage = () => {
         invite_code: inviteCode.trim(),
         phone: phone.trim(),
       })
+      console.log('加入班级返回结果:', result)
 
       // 设置当前班级
       const cc: CurrentClass = {
