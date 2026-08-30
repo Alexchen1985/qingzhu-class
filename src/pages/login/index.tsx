@@ -25,8 +25,12 @@ const LoginPage = () => {
   useDidShow(() => {
     // 如果已登录，直接跳转到首页
     const classId = getCurrentClassId()
+    console.log('登录页 - 检查 classId:', classId)
     if (classId) {
+      console.log('登录页 - 已登录，跳转到首页')
       Taro.switchTab({ url: '/pages/index/index' })
+    } else {
+      console.log('登录页 - 未登录，显示登录页面')
     }
   })
 
