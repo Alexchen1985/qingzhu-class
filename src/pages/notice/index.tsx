@@ -269,6 +269,25 @@ const NoticePage = () => {
                 <Text className="block text-sm text-gray-500 line-clamp-2">
                   {item.content}
                 </Text>
+                {/* 显示图片缩略图 */}
+                {item.images && item.images.length > 0 && (
+                  <View className="flex gap-2 mt-2">
+                    {item.images.slice(0, 3).map((img, idx) => (
+                      <Image
+                        key={idx}
+                        src={img}
+                        className="rounded"
+                        style={{ width: '60px', height: '60px' }}
+                        mode="aspectFill"
+                      />
+                    ))}
+                    {item.images.length > 3 && (
+                      <View className="w-[60px] h-[60px] rounded bg-gray-100 flex items-center justify-center">
+                        <Text className="text-xs text-gray-500">+{item.images.length - 3}</Text>
+                      </View>
+                    )}
+                  </View>
+                )}
                 <Text className="block text-xs text-gray-400 mt-2">
                   {item.author_name} · {formatDate(item.created_at)}
                 </Text>

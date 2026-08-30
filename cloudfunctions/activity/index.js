@@ -37,7 +37,7 @@ async function isManager(classId, openid) {
 
 // 创建活动
 async function createAction(event, openid) {
-  const { class_id, title, description, location, start_time, deadline, max_participants } = event
+  const { class_id, title, description, location, start_time, deadline, max_participants, images } = event
   if (!class_id || !title) return { code: -1, msg: '缺少必要参数' }
   if (!await isManager(class_id, openid)) return { code: -1, msg: 'NO_PERMISSION' }
 
@@ -52,6 +52,7 @@ async function createAction(event, openid) {
       location: location || '', start_time: start_time || '',
       deadline: deadline || '',
       max_participants: max_participants || 0,
+      images: images || [],
       status: 'open',
       created_by: openid, created_at: now, author_name: authorName
     }

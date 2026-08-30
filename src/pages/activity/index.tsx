@@ -3,7 +3,7 @@
  * 数据来源：activity 云函数
  */
 import { useState, useCallback } from 'react'
-import { View, Text, ScrollView, Picker } from '@tarojs/components'
+import { View, Text, ScrollView, Picker, Image } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -12,10 +12,11 @@ import { Progress } from '@/components/ui/progress'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Calendar, MapPin, Users, Clock, Plus, X, UserCheck, ChevronRight } from 'lucide-react-taro'
+import { Calendar, MapPin, Users, Clock, Plus, X, UserCheck, ChevronRight, Camera } from 'lucide-react-taro'
 import {
   getActivityList, createActivity, signupActivity,
   getActivitySignupList, cancelActivity,
+  uploadImageToCloud, getTempFileURL,
   type CloudActivity, type CloudSignup
 } from '@/services/cloud'
 import { getCurrentClassId, getUserRole, getProfile } from '@/store'
@@ -35,15 +36,17 @@ export default function ActivityPage() {
   const [showSignups, setShowSignups] = useState(false)
   const [selectedActivity, setSelectedActivity] = useState<CloudActivity | null>(null)
   const [signupList, setSignupList] = useState<CloudSignup[]>([])
-  const [form, setForm] = useState({ title: '', description: '', location: '', start_time: '', deadline: '', max_participants: '' })
+  const [form, setForm] = useState({ title: '', description: '', location: '', start_time: '', deadline: '', max_participants: '', images: [] as string[] })
   const [signupForm, setSignupForm] = useState({ student_name: '', contact: '', note: '' })
   const [startTimePicker, setStartTimePicker] = useState('')
   const [deadlinePicker, setDeadlinePicker] = useState('')
+  const [uploading, setUploading] = useState(false)
 
   const classId = getCurrentClassId()
   const role = getUserRole()
   const isManager = role === 'admin' || role === 'head_teacher' || role === 'committee'
   const isTeacher = role === 'teacher'
+  const isWeapp = Taro.getEnv() === Taro.ENV_TYPE.WEAPP
 
   const loadActivities = useCallback(async () => {
     if (!classId) return
@@ -66,10 +69,11 @@ export default function ActivityPage() {
         class_id: classId!, title: form.title, description: form.description,
         location: form.location, start_time: form.start_time,
         deadline: form.deadline, max_participants: parseInt(form.max_participants) || 0,
+        images: form.images,
       })
       Taro.showToast({ title: '创建成功', icon: 'success' })
       setShowCreate(false)
-      setForm({ title: '', description: '', location: '', start_time: '', deadline: '', max_participants: '' })
+      setForm({ title: '', description: '', location: '', start_time: '', deadline: '', max_participants: '', images: [] })
       setStartTimePicker('')
       setDeadlinePicker('')
       loadActivities()
@@ -88,6 +92,41 @@ export default function ActivityPage() {
     const value = e.detail.value
     setDeadlinePicker(value)
     setForm({ ...form, deadline: value })
+  }
+
+  const handleChooseImage = async () => {
+    if (!isWeapp) {
+      Taro.showToast({ title: '仅小程序支持图片上传', icon: 'none' })
+      return
+    }
+    try {
+      const res = await Taro.chooseImage({
+        count: 3,
+        sizeType: ['compressed'],
+        sourceType: ['album', 'camera'],
+      })
+      setUploading(true)
+      const fileIDs: string[] = []
+      for (const path of res.tempFilePaths) {
+        const fileID = await uploadImageToCloud(path, classId!)
+        fileIDs.push(fileID)
+      }
+      if (fileIDs.length > 0) {
+        const urls = await getTempFileURL(fileIDs)
+        setForm({ ...form, images: [...form.images, ...urls] })
+        Taro.showToast({ title: `已上传${urls.length}张图片`, icon: 'success' })
+      }
+    } catch (err) {
+      console.error('图片上传失败:', err)
+      Taro.showToast({ title: '图片上传失败', icon: 'none' })
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const removeImage = (index: number) => {
+    const newImages = form.images.filter((_, i) => i !== index)
+    setForm({ ...form, images: newImages })
   }
 
   const openSignupDialog = (activity: CloudActivity) => {
@@ -230,6 +269,26 @@ export default function ActivityPage() {
                       <Text className="block text-sm text-gray-500 mb-3">{activity.description}</Text>
                     ) : null}
 
+                    {/* 显示活动图片 */}
+                    {activity.images && activity.images.length > 0 && (
+                      <View className="flex flex-wrap gap-2 mb-3">
+                        {activity.images.slice(0, 3).map((img, idx) => (
+                          <Image
+                            key={idx}
+                            src={img}
+                            className="rounded"
+                            style={{ width: '80px', height: '80px' }}
+                            mode="aspectFill"
+                          />
+                        ))}
+                        {activity.images.length > 3 && (
+                          <View className="w-[80px] h-[80px] rounded bg-gray-100 flex items-center justify-center">
+                            <Text className="text-xs text-gray-500">+{activity.images.length - 3}</Text>
+                          </View>
+                        )}
+                      </View>
+                    )}
+
                     <View className="space-y-2 mb-3">
                       {activity.start_time ? (
                         <View className="flex items-center text-xs text-gray-500">
@@ -365,6 +424,36 @@ export default function ActivityPage() {
                   value={form.max_participants} onInput={(e) => setForm({ ...form, max_participants: e.detail.value })}
                 />
               </View>
+            </View>
+            {/* 图片上传 */}
+            <View>
+              <Text className="block text-sm text-gray-600 mb-1">活动图片</Text>
+              {isWeapp && (
+                <Button variant="outline" onClick={handleChooseImage} disabled={uploading}>
+                  <Camera size={16} color="#6B7280" />
+                  <Text className="ml-2 text-sm text-gray-600">{uploading ? '上传中...' : '添加图片'}</Text>
+                </Button>
+              )}
+              {form.images.length > 0 && (
+                <View className="flex flex-wrap gap-2 mt-2">
+                  {form.images.map((img, idx) => (
+                    <View key={idx} className="relative">
+                      <Image
+                        src={img}
+                        className="rounded"
+                        style={{ width: '60px', height: '60px' }}
+                        mode="aspectFill"
+                      />
+                      <View
+                        className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 flex items-center justify-center"
+                        onClick={() => removeImage(idx)}
+                      >
+                        <X size={12} color="#fff" />
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
             </View>
             <Button className="w-full bg-[#5EC4A0] text-white mt-4" onClick={handleCreate}>
               <Text className="text-white">发布活动</Text>
