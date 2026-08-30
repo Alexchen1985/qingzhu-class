@@ -45,16 +45,21 @@ const IndexPage = () => {
     try {
       setLoading(true)
       
+      console.log('首页 - 开始加载数据，classId:', classId)
+      
       // 获取公告列表
       const announcementResult = await getAnnouncementList(classId)
+      console.log('首页 - 公告数据:', announcementResult)
       setAnnouncements(announcementResult.announcements || [])
       
       // 获取活动列表
       const activityList = await getActivityList(classId)
+      console.log('首页 - 活动数据:', activityList)
       setActivities(activityList || [])
       
       // 获取班费统计
       const feeResult = await getFeeRecordList(classId)
+      console.log('首页 - 班费数据:', feeResult)
       const totalIncome = feeResult.total_income || 0
       const totalExpense = feeResult.total_expense || 0
       setBalance(totalIncome - totalExpense)

@@ -43,16 +43,23 @@ const LoginPage = () => {
     setLoading(true)
     try {
       const result: LoginResult = await login({ phone: phone.trim() })
+      console.log('登录返回结果:', result)
+      console.log('classes 数量:', result.classes?.length)
 
       // 保存到本地缓存
       Taro.setStorageSync(STORAGE_KEY_LOGIN, result)
       // 记住手机号
       Taro.setStorageSync(STORAGE_KEY_PHONE, phone.trim())
 
-      if (result.classes.length > 0) {
+      if (result.classes && result.classes.length > 0) {
         const first = result.classes[0]
         console.log('登录成功，班级信息:', first)
-        console.log('class_id:', first.member.class_id)
+        console.log('class_id:', first.member?.class_id)
+        
+        if (!first.member?.class_id) {
+          Taro.showToast({ title: '班级信息不完整', icon: 'none', duration: 3000 })
+          return
+        }
         const cc: CurrentClass = {
           classId: first.member.class_id,
           className: first.className,
