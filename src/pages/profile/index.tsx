@@ -49,7 +49,6 @@ const ProfilePage = () => {
   const [loginData, setLoginData] = useState<{ openid: string; classes: ClassMemberWithClass[] }>({ openid: '', classes: [] })
   const [currentClass, setCurrentClass] = useState<CurrentClass | null>(null)
   const [showSwitchDialog, setShowSwitchDialog] = useState(false)
-  const [showCodesDialog, setShowCodesDialog] = useState(false)
   const [copiedField, setCopiedField] = useState('')
   const [uploading, setUploading] = useState(false)
 

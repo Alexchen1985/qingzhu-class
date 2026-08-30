@@ -9,7 +9,10 @@ import type {
   LoginResult,
   ClassCreateResult,
   ClassJoinResult,
-} from './cloud-types'
+  ClassRole,
+} from '@/services/cloud-types'
+
+export type { ClassRole }
 
 /** 判断是否为微信小程序环境 */
 function isWeapp(): boolean {
@@ -448,10 +451,10 @@ export async function classCreate(params: {
 /** 加入班级 */
 export async function classJoin(params: {
   invite_code: string
-  student_name: string
-  parent_name: string
   phone: string
-  relation: string
+  student_name?: string
+  parent_name?: string
+  relation?: string
 }): Promise<ClassJoinResult> {
   return callFunction<ClassJoinResult>(CLOUD_FUNCTIONS.CLASS_JOIN, params)
 }
@@ -465,6 +468,7 @@ export interface RosterItem {
   parent_name: string
   phone: string
   relation: string
+  role?: ClassRole
   imported_by: string
   created_at: string
   joined?: boolean
@@ -497,6 +501,7 @@ export async function rosterAdd(params: {
   parent_name: string
   phone: string
   relation: string
+  role?: ClassRole
 }): Promise<{ _id: string }> {
   return callFunction<{ _id: string }>(CLOUD_FUNCTIONS.ROSTER_IMPORT, {
     action: 'add',
@@ -651,6 +656,7 @@ export interface CloudActivity {
   created_at: string
   current_count: number
   is_signed_up: boolean
+  images?: string[]
 }
 
 export interface CloudSignup {
@@ -678,6 +684,7 @@ export async function createActivity(data: {
   start_time?: string
   deadline?: string
   max_participants?: number
+  images?: string[]
 }): Promise<{ activity_id: string }> {
   const result = await callFunction(CLOUD_FUNCTIONS.ACTIVITY, { action: 'create', ...data })
   return result || { activity_id: '' }

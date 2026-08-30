@@ -14,6 +14,7 @@ import {
   rosterAdd,
   rosterDelete,
   type RosterItem,
+  type ClassRole,
 } from '@/services/cloud'
 import { getCurrentClassId } from '@/store'
 
@@ -31,7 +32,7 @@ export default function RosterPage() {
   const [newParentName, setNewParentName] = useState('')
   const [newPhone, setNewPhone] = useState('')
   const [newRelation, setNewRelation] = useState('家长')
-  const [newRole, setNewRole] = useState('parent')
+  const [newRole, setNewRole] = useState<ClassRole>('parent')
 
   // 编辑表单
   const [editingItem, setEditingItem] = useState<RosterItem | null>(null)
@@ -39,7 +40,7 @@ export default function RosterPage() {
   const [editParentName, setEditParentName] = useState('')
   const [editPhone, setEditPhone] = useState('')
   const [editRelation, setEditRelation] = useState('')
-  const [editRole, setEditRole] = useState('parent')
+  const [editRole, setEditRole] = useState<ClassRole>('parent')
 
   const classId = getCurrentClassId()
 

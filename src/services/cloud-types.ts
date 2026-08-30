@@ -74,6 +74,8 @@ export interface ClassMemberWithClass {
   member: ClassMember
   className: string
   schoolName: string
+  inviteCode?: string
+  teacherInviteCode?: string
 }
 
 /** login 云函数返回 */

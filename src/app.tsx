@@ -2,7 +2,7 @@ import { PropsWithChildren, useState, useEffect } from 'react';
 import Taro from '@tarojs/taro';
 import { LucideTaroProvider } from 'lucide-react-taro';
 import { initStorage, setCurrentClassId, setUserRole } from '@/store';
-import { initCloud, login } from '@/services/cloud';
+import { initCloud } from '@/services/cloud';
 import type { LoginResult, CurrentClass } from '@/services/cloud-types';
 import '@/app.css';
 import { Toaster } from '@/components/ui/toast';
