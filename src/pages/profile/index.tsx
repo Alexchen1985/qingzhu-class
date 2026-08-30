@@ -139,9 +139,11 @@ const ProfilePage = () => {
         if (res.confirm) {
           // 保留手机号缓存，清除其他登录信息
           const savedPhone = Taro.getStorageSync('app_login_phone')
+          console.log('退出登录 - 保存的手机号:', savedPhone)
           Taro.clearStorageSync()
           if (savedPhone) {
             Taro.setStorageSync('app_login_phone', savedPhone)
+            console.log('退出登录 - 已恢复手机号缓存')
           }
           Taro.navigateTo({ url: '/pages/login/index' })
         }

@@ -22,6 +22,7 @@ const LoginPage = () => {
   useDidShow(() => {
     // 记住上次登录的手机号
     const savedPhone = Taro.getStorageSync(STORAGE_KEY_PHONE)
+    console.log('登录页 - 读取缓存手机号:', savedPhone)
     if (savedPhone) {
       setPhone(savedPhone)
     }
