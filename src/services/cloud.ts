@@ -494,6 +494,13 @@ export async function rosterImport(params: {
   )
 }
 
+/** 批量同步 roster 到 class_members */
+export async function syncRosterToMembers(classId: string): Promise<{ added: number; skipped: number; total: number }> {
+  return callFunction<{ added: number; skipped: number; total: number }>(CLOUD_FUNCTIONS.SYNC_ROSTER, {
+    class_id: classId,
+  })
+}
+
 /** 手动添加单条名单 */
 export async function rosterAdd(params: {
   class_id: string

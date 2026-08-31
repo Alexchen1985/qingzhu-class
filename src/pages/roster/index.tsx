@@ -13,6 +13,7 @@ import {
   rosterImport,
   rosterAdd,
   rosterDelete,
+  syncRosterToMembers,
   type RosterItem,
   type ClassRole,
 } from '@/services/cloud'
@@ -26,6 +27,7 @@ export default function RosterPage() {
   const [importText, setImportText] = useState('')
   const [importing, setImporting] = useState(false)
   const [importResult, setImportResult] = useState<{ imported: number; skipped: number } | null>(null)
+  const [syncing, setSyncing] = useState(false)
 
   // 新增表单
   const [newStudentName, setNewStudentName] = useState('')
@@ -64,6 +66,29 @@ export default function RosterPage() {
   useEffect(() => {
     loadRoster()
   }, [loadRoster])
+
+  const handleSync = async () => {
+    if (!classId) return
+    const res = await Taro.showModal({
+      title: '确认同步',
+      content: '将 roster 中的所有家长同步到 class_members，已存在的会跳过。确定吗？',
+    })
+    if (!res.confirm) return
+
+    setSyncing(true)
+    try {
+      const result = await syncRosterToMembers(classId)
+      Taro.showToast({
+        title: `同步成功：新增${result.added}人，跳过${result.skipped}人`,
+        icon: 'success',
+        duration: 3000,
+      })
+    } catch (err) {
+      Taro.showToast({ title: (err as Error).message || '同步失败', icon: 'none' })
+    } finally {
+      setSyncing(false)
+    }
+  }
 
   const handleImport = async () => {
     if (!importText.trim()) {
@@ -224,6 +249,14 @@ export default function RosterPage() {
         >
           <Plus size={16} color="#fff" />
           <Text>手动添加</Text>
+        </Button>
+        <Button
+          className="flex-1 flex items-center justify-center gap-2 bg-blue-500"
+          onClick={handleSync}
+          disabled={syncing}
+        >
+          <Users size={16} color="#fff" />
+          <Text>{syncing ? '同步中...' : '同步到成员'}</Text>
         </Button>
       </View>
 

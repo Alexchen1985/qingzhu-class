@@ -18,6 +18,7 @@ export const CLOUD_FUNCTIONS = {
   DUTY: 'duty',
   UPDATE_PROFILE: 'updateProfile',
   UPLOAD_AVATAR: 'uploadAvatar',
+  SYNC_ROSTER: 'syncRosterToMembers',
 } as const
 
 /** 数据库集合名称 */
