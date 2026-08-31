@@ -175,10 +175,73 @@ async function paymentMark(event, openid, role) {
     ? { status: 'paid', paid_at: new Date() }
     : { status: 'unpaid', paid_at: null }
 
+  // 获取缴费记录详情（用于生成收入记录）
+  let totalAmount = 0
+  let studentNames = []
+  
+  if (status === 'paid') {
+    // 查询缴费记录详情
+    const paymentRes = await db.collection('fee_payments')
+      .where({ _id: _.in(payment_ids) })
+      .limit(200).get()
+    
+    totalAmount = paymentRes.data.reduce((sum, p) => sum + p.amount, 0)
+    studentNames = paymentRes.data.map(p => p.student_name)
+    
+    // 获取收费项目信息
+    const collectionId = paymentRes.data[0]?.collection_id
+    let collectionTitle = '班费收入'
+    if (collectionId) {
+      const collRes = await db.collection('fee_collections').doc(collectionId).get()
+      collectionTitle = collRes.data?.title || '班费收入'
+    }
+    
+    // 在 fee_records 中添加收入记录
+    const now = new Date()
+    await db.collection('fee_records').add({
+      data: {
+        class_id,
+        type: 'income',
+        amount: totalAmount,
+        purpose: `${collectionTitle} - ${studentNames.length}人缴费`,
+        handler_name: '系统自动',
+        occurred_at: now.toISOString().slice(0, 10),
+        created_by: openid,
+        created_at: now
+      }
+    })
+  } else {
+    // 取消缴费时，删除对应的收入记录
+    const paymentRes = await db.collection('fee_payments')
+      .where({ _id: _.in(payment_ids) })
+      .limit(200).get()
+    
+    totalAmount = paymentRes.data.reduce((sum, p) => sum + p.amount, 0)
+    const collectionId = paymentRes.data[0]?.collection_id
+    
+    // 查找并删除对应的收入记录
+    const recordRes = await db.collection('fee_records')
+      .where({
+        class_id,
+        type: 'income',
+        purpose: _.regex('.*缴费$'),
+        amount: totalAmount,
+        created_by: openid
+      })
+      .orderBy('created_at', 'desc')
+      .limit(1).get()
+    
+    if (recordRes.data.length > 0) {
+      await db.collection('fee_records').doc(recordRes.data[0]._id).remove()
+    }
+  }
+
+  // 更新缴费状态
   for (const pid of payment_ids) {
     await db.collection('fee_payments').doc(pid).update({ data: updateData })
   }
-  return { code: 0, msg: 'ok', data: { updated: payment_ids.length } }
+  
+  return { code: 0, msg: 'ok', data: { updated: payment_ids.length, amount: totalAmount } }
 }
 
 // 获取缴费记录列表
